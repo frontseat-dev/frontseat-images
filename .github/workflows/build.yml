@@ -41,7 +41,7 @@ jobs:
           docker run --rm -v "$PWD":/work -w /work "$MELANGE" keygen
           for recipe in packages/*.yaml; do
             docker run --rm --privileged -v "$PWD":/work -w /work "$MELANGE" \
-              build "$recipe" --arch x86_64,aarch64 --signing-key melange.rsa --out-dir packages
+              build "$recipe" --arch x86_64,aarch64 --signing-key melange.rsa --out-dir apks
           done
       - uses: docker/login-action@v3
         with:
@@ -58,7 +58,7 @@ jobs:
             # libLLVM (a PURL case mismatch); back on once that is fixed.
             apko publish "images/$dir/apko.yaml" "$REGISTRY/$name:$tag" \
               --arch x86_64,aarch64 --sbom=false \
-              --repository-append "$PWD/packages" --keyring-append "$PWD/melange.rsa.pub" \
+              --repository-append "$PWD/apks" --keyring-append "$PWD/melange.rsa.pub" \
               --image-refs "refs-$name.txt"
             ref="$(head -n1 "refs-$name.txt")"
             cosign sign --yes "$ref"

@@ -27,8 +27,8 @@ summary lists each image's tag and digest.
 ```sh
 docker run --rm -v "$PWD":/work -w /work cgr.dev/chainguard/melange keygen
 docker run --rm --privileged -v "$PWD":/work -w /work cgr.dev/chainguard/melange \
-  build packages/mise.yaml --arch aarch64 --signing-key melange.rsa --out-dir packages
+  build packages/mise.yaml --arch aarch64 --signing-key melange.rsa --out-dir apks
 apko build images/runner/apko.yaml runner:local runner.tar --arch aarch64 --sbom=false \
-  --repository-append "$PWD/packages" --keyring-append "$PWD/melange.rsa.pub"
+  --repository-append "$PWD/apks" --keyring-append "$PWD/melange.rsa.pub"
 docker load -i runner.tar
 ```
