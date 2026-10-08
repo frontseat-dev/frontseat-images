@@ -1,0 +1,9 @@
+# What Frontseat's Node services run on: base (images/base) plus Node.js 22,
+# the version the services are built and tested with. The program, its
+# production node_modules and its bundle are laid on top by gib.
+
+include: images/base/apko.yaml
+
+contents:
+  packages:
+    - nodejs-22

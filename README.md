@@ -7,6 +7,7 @@ and linux/arm64, published to `ghcr.io/frontseat-dev`, signed with cosign.
 | Image | What it is |
 |---|---|
 | [`base`](images/base) | What every Frontseat service runs on: Wolfi's base layout, CA bundle, timezones, git, a non-root user |
+| [`node`](images/node) | `base` plus Node.js 22: what Frontseat's Node services (the portal) run on |
 | [`buildbarn-runner`](images/buildbarn-runner) | `base` plus the tools Buildbarn's build actions run with |
 
 Wolfi does not have everything yet. What it lacks is built here with

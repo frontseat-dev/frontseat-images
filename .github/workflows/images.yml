@@ -32,7 +32,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [base, buildbarn-runner]
+        name: [base, buildbarn-runner, node]
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7.0.1
