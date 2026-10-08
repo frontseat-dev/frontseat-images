@@ -3,5 +3,4 @@ melange.rsa
 melange.rsa.pub
 apks/
 *.tar
-refs.txt
 digest-*.md

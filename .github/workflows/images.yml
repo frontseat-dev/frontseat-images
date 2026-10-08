@@ -66,11 +66,12 @@ jobs:
           ref="$REGISTRY/${{ matrix.name }}:${{ inputs.version }}"
           apko publish "images/${{ matrix.name }}/apko.yaml" "$ref" \
             --arch x86_64,aarch64 --sbom=false \
-            --repository-append "$PWD/apks" --keyring-append "$PWD/melange.rsa.pub" \
-            --image-refs refs.txt
-          digest="$(head -n1 refs.txt)"
-          cosign sign --yes "$digest"
-          echo "| ${{ matrix.name }} | \`$ref\` | \`${digest#*@}\` |" > "digest-${{ matrix.name }}.md"
+            --repository-append "$PWD/apks" --keyring-append "$PWD/melange.rsa.pub"
+          # The index, which names one image per architecture, is what a
+          # consumer pins; signing it recursively signs each image too.
+          index="$(docker buildx imagetools inspect "$ref" --format '{{json .Manifest}}' | jq -r .digest)"
+          cosign sign --yes --recursive "$REGISTRY/${{ matrix.name }}@$index"
+          echo "| ${{ matrix.name }} | \`$ref\` | \`$index\` |" > "digest-${{ matrix.name }}.md"
           cat "digest-${{ matrix.name }}.md" >> "$GITHUB_STEP_SUMMARY"
       - if: inputs.version != ''
         uses: actions/upload-artifact@v7.0.2
