@@ -1,0 +1,28 @@
+# What base must provide (container-structure-test). It has no shell, so
+# commands run their binaries directly.
+schemaVersion: 2.0.0
+
+metadataTest:
+  user: "65532"
+
+fileExistenceTests:
+  - name: CA bundle
+    path: /etc/ssl/certs/ca-certificates.crt
+    shouldExist: true
+  - name: timezones
+    path: /usr/share/zoneinfo/UTC
+    shouldExist: true
+  - name: the non-root user
+    path: /etc/passwd
+    shouldExist: true
+
+fileContentTests:
+  - name: nonroot is uid 65532
+    path: /etc/passwd
+    expectedContents: ['nonroot:x:65532:65532']
+
+commandTests:
+  - name: git
+    command: git
+    args: [--version]
+    expectedOutput: ['git version 2\.']

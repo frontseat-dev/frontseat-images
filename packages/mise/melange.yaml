@@ -1,6 +1,4 @@
-# mise (https://mise.jdx.dev), which Wolfi does not package yet
-# (wolfi-dev/os#78684). Its own release binary, pinned by checksum per
-# architecture. Drop this once Wolfi has it.
+# mise's own release binary, until Wolfi has it (README.md).
 package:
   name: mise
   version: 2026.8.12

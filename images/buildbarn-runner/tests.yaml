@@ -1,0 +1,67 @@
+# What a build action can count on in the runner (container-structure-test).
+# Every command runs as uid 65534, as bb_runner runs actions.
+schemaVersion: 2.0.0
+
+containerRunOptions:
+  user: "65534"
+
+metadataTest:
+  envVars:
+    - { key: MISE_DATA_DIR, value: /mise/data }
+    - { key: HOME, value: /tmp }
+  workdir: /worker
+
+fileExistenceTests:
+  - name: mise's state, open to every user
+    path: /mise/data
+    shouldExist: true
+    permissions: drwxrwxrwx
+  - name: mise's cache, open to every user
+    path: /mise/cache
+    shouldExist: true
+    permissions: drwxrwxrwx
+  - name: ICU, for .NET's cultures
+    path: /usr/lib/libicuuc.so.78
+    shouldExist: true
+  - name: libXtst, for the JDK's AWT
+    path: /usr/lib/libXtst.so.6
+    shouldExist: true
+  - name: GTK 3, for SWT
+    path: /usr/lib/libgtk-3.so.0
+    shouldExist: true
+
+commandTests:
+  - name: mise
+    command: mise
+    args: [--version]
+    expectedOutput: ['2026\.8\.12']
+  - name: a C toolchain
+    command: gcc
+    args: [--version]
+    expectedOutput: ['gcc']
+  - name: git, from base
+    command: git
+    args: [--version]
+    expectedOutput: ['git version 2\.']
+  - name: Python
+    command: python3
+    args: [--version]
+    expectedOutput: ['Python 3\.13']
+  - name: the Docker CLI
+    command: docker
+    args: [--version]
+    expectedOutput: ['Docker version']
+  - name: fonts for SWT and AWT
+    command: fc-list
+    expectedOutput: ['DejaVu']
+  # Under a shell, as an action runs it: as a container's PID 1, xvfb-run
+  # never hears Xvfb's ready signal (and a shell given one command would
+  # become it, hence the second).
+  - name: a virtual display, as Tycho's UI tests start one
+    command: sh
+    args: [-c, 'xvfb-run -a xdpyinfo && echo display-ok']
+    expectedOutput: ['dimensions:', 'display-ok']
+  - name: mise installs and runs a pinned tool
+    command: bash
+    args: [-c, 'cd "$(mktemp -d)" && printf "[tools]\njq = \"1.7.1\"\n" > mise.toml && mise x -- jq --version']
+    expectedOutput: ['jq-1\.7\.1']

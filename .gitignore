@@ -1,7 +1,7 @@
-# Made by a build: the run's signing key, the packages and images.
+# Made by a build: the run's signing key, its packages and images.
 melange.rsa
 melange.rsa.pub
 apks/
 *.tar
-refs-*.txt
-published.md
+refs.txt
+digest-*.md

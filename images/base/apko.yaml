@@ -1,7 +1,7 @@
-# The base every Go service of the fleet runs on: Wolfi's base layout, the
-# CA bundle and timezones, a non-root user, nothing else. Static binaries
-# need no libc. Rebuilt every night, so Wolfi's fixes land; consumers pin
-# the image by digest.
+# The base every Frontseat service runs on: Wolfi's base layout, the CA
+# bundle, timezones, git (the asset service fetches repositories with it;
+# the rest ignore it) and a non-root user. Statically linked Go programs
+# are laid on top of it (gib, in frontseat-enterprise).
 contents:
   repositories:
     - https://packages.wolfi.dev/os
@@ -11,6 +11,7 @@ contents:
     - wolfi-baselayout
     - ca-certificates-bundle
     - tzdata
+    - git
 
 accounts:
   groups:

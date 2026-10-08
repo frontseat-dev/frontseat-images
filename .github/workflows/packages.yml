@@ -1,0 +1,34 @@
+# The packages Wolfi lacks (packages/<name>/melange.yaml), built for amd64
+# and arm64 and handed on as the artifact "packages": an APK repository
+# (apks/<arch>/) and the key it is signed with (melange.rsa.pub). The key
+# is made for the run; the packages are only ever consumed by the same run's
+# images and are never published.
+name: packages
+on:
+  workflow_call: {}
+permissions:
+  contents: read
+env:
+  # Chainguard publishes melange's image as latest only: pinned by digest.
+  MELANGE: cgr.dev/chainguard/melange@sha256:e2254659aab8bcecb4f7c612ef27524a49523378409af89c0cae23b455ad0061
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: docker/setup-qemu-action@v4.4.0
+      - name: signing key for this run
+        run: docker run --rm -v "$PWD":/work -w /work "$MELANGE" keygen
+      - name: build
+        run: |
+          for recipe in packages/*/melange.yaml; do
+            docker run --rm --privileged -v "$PWD":/work -w /work "$MELANGE" \
+              build "$recipe" --arch x86_64,aarch64 --signing-key melange.rsa --out-dir apks
+          done
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: packages
+          path: |
+            apks/
+            melange.rsa.pub
+          retention-days: 1

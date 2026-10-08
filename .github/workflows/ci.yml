@@ -1,0 +1,14 @@
+# Every change: build every package and image and test them, publishing
+# nothing.
+name: ci
+on:
+  pull_request: {}
+  push:
+    branches: [main]
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+jobs:
+  images:
+    uses: ./.github/workflows/images.yml

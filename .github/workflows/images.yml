@@ -1,0 +1,102 @@
+# Every image (images/<name>/apko.yaml) built for amd64 and arm64 and
+# tested on both (images/<name>/tests.yaml). With publish, a release's
+# images are then pushed as ghcr.io/frontseat-dev/<name>:<version>, signed
+# with cosign (keyless), and listed with their digests in the release.
+name: images
+on:
+  workflow_call:
+    inputs:
+      publish:
+        description: push and sign the images
+        type: boolean
+        default: false
+      version:
+        description: the release's version, X.Y.Z (with publish)
+        type: string
+        default: ""
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+env:
+  REGISTRY: ghcr.io/frontseat-dev
+jobs:
+  packages:
+    uses: ./.github/workflows/packages.yml
+
+  image:
+    needs: packages
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [base, buildbarn-runner]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: ./.github/actions/setup
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: packages
+      # --sbom=false: apko 1.4.8 fails its own SBOM check on Wolfi's libLLVM
+      # (a PURL case mismatch); back on once that is fixed.
+      - name: build
+        run: |
+          apko build "images/${{ matrix.name }}/apko.yaml" "${{ matrix.name }}:test" image.tar \
+            --arch x86_64,aarch64 --sbom=false \
+            --repository-append "$PWD/apks" --keyring-append "$PWD/melange.rsa.pub"
+          docker load -i image.tar
+      - name: test amd64
+        run: container-structure-test test --image "${{ matrix.name }}:test-amd64" --config "images/${{ matrix.name }}/tests.yaml"
+      - name: test arm64
+        run: container-structure-test test --platform linux/arm64 --image "${{ matrix.name }}:test-arm64" --config "images/${{ matrix.name }}/tests.yaml"
+      - if: inputs.publish
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - if: inputs.publish
+        name: publish
+        run: |
+          ref="$REGISTRY/${{ matrix.name }}:${{ inputs.version }}"
+          apko publish "images/${{ matrix.name }}/apko.yaml" "$ref" \
+            --arch x86_64,aarch64 --sbom=false \
+            --repository-append "$PWD/apks" --keyring-append "$PWD/melange.rsa.pub" \
+            --image-refs refs.txt
+          digest="$(head -n1 refs.txt)"
+          cosign sign --yes "$digest"
+          echo "| ${{ matrix.name }} | \`$ref\` | \`${digest#*@}\` |" > "digest-${{ matrix.name }}.md"
+          cat "digest-${{ matrix.name }}.md" >> "$GITHUB_STEP_SUMMARY"
+      - if: inputs.publish
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: digest-${{ matrix.name }}
+          path: digest-${{ matrix.name }}.md
+          retention-days: 1
+
+  release-notes:
+    if: inputs.publish
+    needs: image
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          pattern: digest-*
+          merge-multiple: true
+      - name: list the images in the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v${{ inputs.version }}
+        run: |
+          {
+            gh release view "$TAG" -R "$GITHUB_REPOSITORY" --json body --jq .body
+            echo
+            echo "## Images"
+            echo
+            echo "Signed with cosign (keyless). Pin by digest."
+            echo
+            echo "| image | reference | digest |"
+            echo "|---|---|---|"
+            cat digest-*.md
+          } > notes.md
+          gh release edit "$TAG" -R "$GITHUB_REPOSITORY" --notes-file notes.md

@@ -1,0 +1,27 @@
+name: setup
+description: >-
+  The tools every workflow here uses, each pinned by version and checksum:
+  apko (images), container-structure-test (their tests), cosign (signing),
+  and QEMU, so one amd64 runner builds and tests arm64 too.
+runs:
+  using: composite
+  steps:
+    - uses: docker/setup-qemu-action@v4.4.0
+    - uses: sigstore/cosign-installer@v4.1.2
+      with:
+        cosign-release: v3.1.3
+    - name: apko and container-structure-test
+      shell: bash
+      env:
+        APKO_VERSION: 1.4.8
+        APKO_SHA256: 3a90aa8b86df51e25db9e29a8b87b468ed716eef0de251fc9d8b1e6d0bf71c8e
+        CST_VERSION: 1.22.1
+        CST_SHA256: fa35e89512a8978585f76cf41397956d2e3a30c62c2ad3fb857b1597074d14ca
+      run: |
+        cd "$RUNNER_TEMP"
+        curl -fsSLo apko.tgz "https://github.com/chainguard-dev/apko/releases/download/v${APKO_VERSION}/apko_${APKO_VERSION}_linux_amd64.tar.gz"
+        echo "${APKO_SHA256}  apko.tgz" | sha256sum -c -
+        sudo tar -xzf apko.tgz --strip-components=1 -C /usr/local/bin "apko_${APKO_VERSION}_linux_amd64/apko"
+        curl -fsSLo container-structure-test "https://github.com/GoogleContainerTools/container-structure-test/releases/download/v${CST_VERSION}/container-structure-test-linux-amd64"
+        echo "${CST_SHA256}  container-structure-test" | sha256sum -c -
+        sudo install -m 0755 container-structure-test /usr/local/bin/

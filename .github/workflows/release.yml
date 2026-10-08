@@ -1,0 +1,33 @@
+# Releases. release-please keeps a release pull request open with the
+# next version and its changelog, from the conventional commits since the
+# last release (feat: a minor, fix: a patch). Merging it tags vX.Y.Z, and
+# the images are then built, tested and published as X.Y.Z.
+name: release
+on:
+  push:
+    branches: [main]
+permissions:
+  contents: write
+  pull-requests: write
+  packages: write
+  id-token: write
+jobs:
+  release-please:
+    runs-on: ubuntu-24.04
+    outputs:
+      created: ${{ steps.release.outputs.release_created }}
+      version: ${{ steps.release.outputs.version }}
+    steps:
+      - id: release
+        uses: googleapis/release-please-action@v5.0.0
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+
+  images:
+    needs: release-please
+    if: needs.release-please.outputs.created == 'true'
+    uses: ./.github/workflows/images.yml
+    with:
+      publish: true
+      version: ${{ needs.release-please.outputs.version }}
