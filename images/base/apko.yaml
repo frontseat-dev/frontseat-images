@@ -1,0 +1,27 @@
+# The base every Go service of the fleet runs on: Wolfi's base layout, the
+# CA bundle and timezones, a non-root user, nothing else. Static binaries
+# need no libc. Rebuilt every night, so Wolfi's fixes land; consumers pin
+# the image by digest.
+contents:
+  repositories:
+    - https://packages.wolfi.dev/os
+  keyring:
+    - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+  packages:
+    - wolfi-baselayout
+    - ca-certificates-bundle
+    - tzdata
+
+accounts:
+  groups:
+    - groupname: nonroot
+      gid: 65532
+  users:
+    - username: nonroot
+      uid: 65532
+      gid: 65532
+  run-as: 65532
+
+archs:
+  - x86_64
+  - aarch64

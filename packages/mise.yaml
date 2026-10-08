@@ -1,0 +1,38 @@
+# mise (https://mise.jdx.dev), which Wolfi does not package yet
+# (wolfi-dev/os#78684). Its own release binary, pinned by checksum per
+# architecture. Drop this once Wolfi has it.
+package:
+  name: mise
+  version: 2026.8.12
+  epoch: 0
+  description: The front-end to your dev env
+  copyright:
+    - license: MIT
+
+environment:
+  contents:
+    repositories:
+      - https://packages.wolfi.dev/os
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    packages:
+      - busybox
+
+pipeline:
+  - if: ${{build.arch}} == 'aarch64'
+    uses: fetch
+    with:
+      uri: https://github.com/jdx/mise/releases/download/v${{package.version}}/mise-v${{package.version}}-linux-arm64.tar.gz
+      expected-sha256: 3ec7d4fd8ebd923794612a3cc89cb44617943845ebf0f4cea9a325dbb3756184
+  - if: ${{build.arch}} == 'x86_64'
+    uses: fetch
+    with:
+      uri: https://github.com/jdx/mise/releases/download/v${{package.version}}/mise-v${{package.version}}-linux-x64.tar.gz
+      expected-sha256: 0c782233b97745fd3ed317ba3acbfd7d256e6268470373757f0cc48d57bb87e6
+  - runs: |
+      install -Dm755 bin/mise "${{targets.destdir}}/usr/bin/mise"
+      install -Dm644 LICENSE "${{targets.destdir}}/usr/share/licenses/mise/LICENSE"
+
+test:
+  pipeline:
+    - runs: mise --version

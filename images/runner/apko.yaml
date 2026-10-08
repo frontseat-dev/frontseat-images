@@ -1,0 +1,69 @@
+# Buildbarn's runner: the root filesystem a build action executes in. bb_runner
+# is staged in by its installer init container (this image has no Buildbarn in
+# it) and runs actions here as uid 65534, unsandboxed, unprivileged. What is
+# here is the tool surface actions expect:
+#
+# - a compiler toolchain, git, pkg-config, Python;
+# - xvfb-run, xauth, GTK 3, libXtst, fontconfig and fonts: a virtual display
+#   for SWT/GTK Eclipse UI tests (Tycho's uitest harness runs the workbench
+#   under xvfb-run; the JDK's AWT dlopens libXtst; SWT and AWT need
+#   /etc/fonts); xvfb-run parses its display number with awk;
+# - ICU, so .NET runs with real cultures rather than the invariant one;
+# - the Docker CLI, for a mounted docker.sock;
+# - mise (packages/mise.yaml), which wraps every action (mise x --) and
+#   fetches the toolchains a workspace pins. Everything it writes lives
+#   under /mise, open to uid 65534.
+#
+# Rebuilt every night, so Wolfi's fixes land; consumers pin the image by digest.
+contents:
+  repositories:
+    - https://packages.wolfi.dev/os
+  keyring:
+    - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+  packages:
+    - wolfi-baselayout
+    - ca-certificates-bundle
+    - tzdata
+    - bash
+    - busybox
+    - build-base
+    - git
+    - pkgconf
+    - python-3.13
+    - xvfb-run
+    - xauth
+    - gtk-3
+    - libxtst
+    - fontconfig
+    - ttf-dejavu
+    - gawk
+    - icu
+    - curl
+    - unzip
+    - docker-cli
+    - mise
+
+environment:
+  MISE_DATA_DIR: /mise/data
+  MISE_CACHE_DIR: /mise/cache
+  MISE_STATE_DIR: /mise/state
+  MISE_TRUSTED_CONFIG_PATHS: /
+  MISE_YES: "1"
+  TMPDIR: /tmp/mise
+  HOME: /tmp
+  PATH: /mise/data/shims:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+paths:
+  - { path: /mise, type: directory, permissions: 0o777, uid: 0, gid: 0 }
+  - { path: /mise/data, type: directory, permissions: 0o777, uid: 0, gid: 0 }
+  - { path: /mise/data/shims, type: directory, permissions: 0o777, uid: 0, gid: 0 }
+  - { path: /mise/cache, type: directory, permissions: 0o777, uid: 0, gid: 0 }
+  - { path: /mise/state, type: directory, permissions: 0o777, uid: 0, gid: 0 }
+  - { path: /tmp/mise, type: directory, permissions: 0o777, uid: 0, gid: 0 }
+  - { path: /worker, type: directory, permissions: 0o755, uid: 0, gid: 0 }
+
+work-dir: /worker
+
+archs:
+  - x86_64
+  - aarch64
