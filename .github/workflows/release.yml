@@ -1,33 +1,84 @@
-# Releases. release-please keeps a release pull request open with the
-# next version and its changelog, from the conventional commits since the
-# last release (feat: a minor, fix: a patch). Merging it tags vX.Y.Z, and
-# the images are then built, tested and published as X.Y.Z.
+# A commit on main, built, tested and, when its commits call for one,
+# released. git-cliff reads the conventional commits since the last release
+# (cliff.toml): feat makes a minor release, fix a patch; anything else
+# releases nothing and is only built and tested. A release publishes every
+# image as X.Y.Z, then tags vX.Y.Z and creates the GitHub release: the
+# changes, and every image's reference and digest.
 name: release
 on:
-  push:
-    branches: [main]
+  workflow_call:
+    inputs:
+      ref:
+        description: the commit on main to release
+        type: string
+        required: true
 permissions:
   contents: write
-  pull-requests: write
   packages: write
   id-token: write
+concurrency:
+  group: release
+  cancel-in-progress: false
 jobs:
-  release-please:
+  version:
     runs-on: ubuntu-24.04
     outputs:
-      created: ${{ steps.release.outputs.release_created }}
-      version: ${{ steps.release.outputs.version }}
+      version: ${{ steps.next.outputs.version }}
     steps:
-      - id: release
-        uses: googleapis/release-please-action@v5.0.0
+      - uses: actions/checkout@v7.0.1
         with:
-          config-file: release-please-config.json
-          manifest-file: .release-please-manifest.json
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      - id: next
+        name: the next version, if any
+        run: |
+          next="$(git-cliff --bumped-version)"
+          if git rev-parse -q --verify "refs/tags/$next" >/dev/null; then
+            echo "nothing to release since $next"
+          else
+            echo "version=${next#v}" >> "$GITHUB_OUTPUT"
+            git-cliff --unreleased --tag "$next" --strip all > notes.md
+            echo "releasing $next"
+          fi
+      - if: steps.next.outputs.version != ''
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: notes
+          path: notes.md
+          retention-days: 1
 
   images:
-    needs: release-please
-    if: needs.release-please.outputs.created == 'true'
+    needs: version
     uses: ./.github/workflows/images.yml
     with:
-      publish: true
-      version: ${{ needs.release-please.outputs.version }}
+      ref: ${{ inputs.ref }}
+      version: ${{ needs.version.outputs.version }}
+
+  github-release:
+    needs: [version, images]
+    if: needs.version.outputs.version != ''
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          pattern: '{notes,digest-*}'
+          merge-multiple: true
+      - name: tag and release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v${{ needs.version.outputs.version }}
+        run: |
+          {
+            cat notes.md
+            echo
+            echo "### Images"
+            echo
+            echo "Signed with cosign (keyless). Pin by digest."
+            echo
+            echo "| image | reference | digest |"
+            echo "|---|---|---|"
+            cat digest-*.md
+          } > release.md
+          gh release create "$TAG" -R "$GITHUB_REPOSITORY" --target "${{ inputs.ref }}" \
+            --title "$TAG" --notes-file release.md

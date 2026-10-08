@@ -5,7 +5,12 @@
 # images and are never published.
 name: packages
 on:
-  workflow_call: {}
+  workflow_call:
+    inputs:
+      ref:
+        description: the commit to build
+        type: string
+        default: ''
 permissions:
   contents: read
 env:
@@ -16,6 +21,8 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
       - uses: docker/setup-qemu-action@v4.4.0
       - name: signing key for this run
         run: docker run --rm -v "$PWD":/work -w /work "$MELANGE" keygen

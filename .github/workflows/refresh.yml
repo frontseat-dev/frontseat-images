@@ -1,8 +1,8 @@
 # Wolfi's fixes, every night. Each image's packages are resolved against
 # Wolfi as it is now, per architecture, into images/<name>/packages.txt.
-# When anything moved, a pull request "fix(images): Wolfi package updates"
-# shows exactly what; merging it makes release-please's next release a
-# patch, and that release publishes images with the new packages.
+# When anything moved, that is committed to main as "fix(images): Wolfi
+# package updates", listing what moved, and released as a patch. (A
+# workflow's own push starts no workflow, so this releases it itself.)
 name: refresh
 on:
   schedule:
@@ -10,7 +10,8 @@ on:
   workflow_dispatch: {}
 permissions:
   contents: write
-  pull-requests: write
+  packages: write
+  id-token: write
 jobs:
   packages:
     uses: ./.github/workflows/packages.yml
@@ -18,6 +19,8 @@ jobs:
   refresh:
     needs: packages
     runs-on: ubuntu-24.04
+    outputs:
+      commit: ${{ steps.commit.outputs.sha }}
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: ./.github/actions/setup
@@ -37,14 +40,27 @@ jobs:
             } > "${dir}packages.txt"
           done
           rm -rf apks melange.rsa.pub
-      - uses: peter-evans/create-pull-request@v8.1.1
-        with:
-          branch: refresh/wolfi
-          commit-message: 'fix(images): Wolfi package updates'
-          title: 'fix(images): Wolfi package updates'
-          body: |
-            Wolfi's packages moved since the last refresh; the diff of each
-            `images/*/packages.txt` is what changes. Merging this makes the
-            next release a patch, which publishes the images with them.
-          labels: wolfi
-          delete-branch: true
+      - id: commit
+        name: commit what moved
+        run: |
+          if git diff --quiet -- images; then
+            echo "Wolfi has not moved"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git diff -U0 -- images | grep -E '^[+-][a-z]' > moved.txt || true
+          git commit -q -F - -- images <<EOF
+          fix(images): Wolfi package updates
+
+          $(cat moved.txt)
+          EOF
+          git push origin HEAD:main
+          echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  release:
+    needs: refresh
+    if: needs.refresh.outputs.commit != ''
+    uses: ./.github/workflows/release.yml
+    with:
+      ref: ${{ needs.refresh.outputs.commit }}

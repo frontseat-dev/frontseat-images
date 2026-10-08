@@ -32,21 +32,23 @@ The directory is the image's name: `images/base` is `ghcr.io/frontseat-dev/base`
 
 | Workflow | When | What |
 |---|---|---|
-| `ci.yml` | every pull request and push to `main` | builds every package and image for both architectures and tests both; publishes nothing |
-| `release.yml` | push to `main` | [release-please](https://github.com/googleapis/release-please) keeps a release pull request open; merging it tags `vX.Y.Z`, then every image is built, tested, published as `X.Y.Z`, signed, and listed with its digest in the GitHub release |
-| `refresh.yml` | every night | resolves every image against Wolfi as it is now; when a package moved, opens `fix(images): Wolfi package updates` with the `packages.txt` diff |
+| `ci.yml` | every pull request | builds every package and image for both architectures and tests both |
+| `ci.yml` | every push to `main` | the same, then a release when the commits call for one |
+| `refresh.yml` | every night | resolves every image against Wolfi as it is now; when a package moved, commits `fix(images): Wolfi package updates` to `main` and releases it |
 
-`packages.yml` and `images.yml` are the steps the others share.
+`packages.yml`, `images.yml` and `release.yml` are the steps the others share.
 
 ## Releasing
 
-Commit with [conventional commits](https://www.conventionalcommits.org):
-`feat:` for a new image or tool (a minor release), `fix:` for a fix (a
-patch). release-please turns them into the next version and its changelog,
-in a pull request titled `chore(main): release X.Y.Z`. Merge it to release.
+Merging to `main` is releasing. The version comes from the
+[conventional commits](https://www.conventionalcommits.org) since the last
+release ([git-cliff](https://git-cliff.org), `cliff.toml`): `feat:` makes a
+minor release, `fix:` a patch; `docs:`, `ci:`, `chore:` and the like release
+nothing. A release publishes every image as `X.Y.Z`, signed, tags `vX.Y.Z`,
+and creates the GitHub release with the changes and every image's digest.
 
-Wolfi's security fixes arrive the same way: merge the nightly
-`fix(images): Wolfi package updates`, then the release pull request.
+Wolfi's security fixes release themselves: the nightly refresh commits what
+moved and releases it as a patch, after the same tests.
 
 Consumers pin a release by digest, e.g.
 `ghcr.io/frontseat-dev/base:0.1.0@sha256:…`; the release lists them.
@@ -61,7 +63,7 @@ Consumers pin a release by digest, e.g.
 ## Updating the tools
 
 The workflows' actions are kept current by Renovate. These are pinned by
-checksum and moved by hand: apko and container-structure-test in
+checksum and moved by hand: apko, container-structure-test and git-cliff in
 `.github/actions/setup/action.yml`, melange's image in
 `.github/workflows/packages.yml`, mise in `packages/mise/melange.yaml`.
 
