@@ -1,0 +1,87 @@
+# What a job can count on in the runner, and what the controller counts on
+# (container-structure-test). Commands run as the image's user, nonroot.
+schemaVersion: 2.0.0
+
+metadataTest:
+  user: "65532"
+  workdir: /usr/share/actions-runner/_work
+  envVars:
+    - { key: HOME, value: /home/nonroot }
+    - { key: RUNNER_MANUALLY_TRAP_SIG, value: "1" }
+  entrypoint:
+    - /bin/bash
+    - -c
+    - exec /usr/share/actions-runner/run.sh --jitconfig "$(cat /run/github-runner/jitconfig)"
+
+fileExistenceTests:
+  - name: the runner's entry
+    path: /usr/share/actions-runner/run.sh
+    shouldExist: true
+    isExecutableBy: any
+  - name: the runner's directory, nonroot's to write in
+    path: /usr/share/actions-runner
+    shouldExist: true
+    uid: 65532
+    gid: 65532
+  - name: the jobs' work directory, nonroot's
+    path: /usr/share/actions-runner/_work
+    shouldExist: true
+    uid: 65532
+    gid: 65532
+  - name: nonroot's home
+    path: /home/nonroot
+    shouldExist: true
+    uid: 65532
+  - name: Node.js for JavaScript actions
+    path: /usr/share/actions-runner/externals/node24/bin/node
+    shouldExist: true
+
+commandTests:
+  # .NET will not start without ICU: this is also the runtime's check.
+  - name: the runner, at the pinned version
+    command: /usr/share/actions-runner/bin/Runner.Listener
+    args: [--version]
+    expectedOutput: ['^2\.338\.0']
+  - name: it runs as nonroot
+    command: id
+    args: [-u]
+    expectedOutput: ['^65532']
+  - name: the Node.js JavaScript actions run on
+    command: /usr/share/actions-runner/externals/node24/bin/node
+    args: [--version]
+    expectedOutput: ['^v24\.']
+  - name: run.sh can write its helper beside itself, as it does at every start
+    command: bash
+    args: [-c, 'cp -f /usr/share/actions-runner/run-helper.sh.template /usr/share/actions-runner/run-helper.sh && echo writable']
+    expectedOutput: ['writable']
+  - name: git
+    command: git
+    args: [--version]
+    expectedOutput: ['git version 2\.']
+  - name: bash
+    command: bash
+    args: [--version]
+    expectedOutput: ['GNU bash']
+  - name: sh is bash
+    command: readlink
+    args: [-f, /bin/sh]
+    expectedOutput: ['/usr/bin/bash']
+  - name: mise
+    command: mise
+    args: [--version]
+    expectedOutput: ['2026\.8\.12']
+  - name: mise installs and runs a pinned tool
+    command: bash
+    args: [-c, 'cd "$(mktemp -d)" && printf "[tools]\njq = \"1.7.1\"\n" > mise.toml && mise trust -q && mise x -- jq --version']
+    expectedOutput: ['jq-1\.7\.1']
+  - name: the tools a job's steps reach for
+    command: bash
+    args: [-c, 'tar --version && gzip --version && curl --version && find --version && sed --version && grep --version && awk --version && ssh -V 2>&1 && echo tools-ok']
+    expectedOutput: ['tools-ok']
+  # The entrypoint's command, without the Secret: the listener starts, finds
+  # no configuration and ends (run.sh exits 0 for it) rather than idling.
+  - name: without a JIT configuration, the runner ends
+    command: bash
+    args: [-c, 'exec /usr/share/actions-runner/run.sh --jitconfig "$(cat /run/github-runner/jitconfig)"']
+    expectedOutput: ['Runner listener exit with terminated error']
+    expectedError: ['/run/github-runner/jitconfig: No such file']

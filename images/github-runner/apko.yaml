@@ -1,0 +1,50 @@
+# A GitHub Actions runner for one job: base (images/base) plus the runner
+# (packages/actions-runner), mise (packages/mise) and the tools jobs expect
+# of a Linux runner. It runs as nonroot (65532): the runner refuses root.
+#
+# The contract with the controller that starts it: a Secret holding the
+# runner's just-in-time configuration is mounted at
+# /run/github-runner/jitconfig, and the entrypoint runs the runner once
+# with it. A JIT runner is ephemeral and never updates itself.
+#
+# The runner's directory is its own: it writes run-helper.sh, its
+# configuration (.runner, .credentials) and its logs (_diag) beside run.sh,
+# and checks out and builds in _work, so both are nonroot's.
+# RUNNER_MANUALLY_TRAP_SIG has run.sh pass SIGTERM on to the listener, so
+# a stopped pod ends the job rather than abandoning it.
+
+include: images/base/apko.yaml
+
+contents:
+  packages:
+    - actions-runner
+    - mise
+    - bash
+    - bash-binsh
+    - coreutils
+    - findutils
+    - sed
+    - grep
+    - gawk
+    - gnutar
+    - gzip
+    - curl
+    - openssh-client
+
+environment:
+  HOME: /home/nonroot
+  RUNNER_MANUALLY_TRAP_SIG: "1"
+
+paths:
+  - { path: /home/nonroot, type: directory, permissions: 0o755, uid: 65532, gid: 65532 }
+  - { path: /usr/share/actions-runner, type: permissions, permissions: 0o755, uid: 65532, gid: 65532 }
+  - { path: /usr/share/actions-runner/_work, type: directory, permissions: 0o755, uid: 65532, gid: 65532 }
+
+work-dir: /usr/share/actions-runner/_work
+
+entrypoint:
+  command: /bin/bash -c 'exec /usr/share/actions-runner/run.sh --jitconfig "$(cat /run/github-runner/jitconfig)"'
+
+archs:
+  - x86_64
+  - aarch64
