@@ -38,6 +38,9 @@ contents:
     - curl
     - openssh-client
     - bubblewrap
+    # ldd, getent, getconf, locale: what setup actions probe the system with
+    # (jdx/mise-action reads the C library from `ldd --version`).
+    - posix-libc-utils
 
 environment:
   HOME: /home/nonroot
