@@ -52,7 +52,7 @@ commandTests:
   - name: ldd, which setup actions read the C library from
     command: ldd
     args: [--version]
-    expectedOutput: ['GNU libc']
+    expectedOutput: ['^ldd [(]glibc-']
   - name: it runs as nonroot
     command: id
     args: [-u]
