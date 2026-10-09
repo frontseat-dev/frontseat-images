@@ -35,6 +35,13 @@ fileExistenceTests:
   - name: Node.js for JavaScript actions
     path: /usr/share/actions-runner/externals/node24/bin/node
     shouldExist: true
+  # Not setuid: bwrap gets its namespaces from the kernel as nonroot, by
+  # a user namespace, or not at all; the image grants nothing itself.
+  - name: bubblewrap, frontseat's sandbox, not setuid
+    path: /usr/bin/bwrap
+    shouldExist: true
+    permissions: -rwxr-xr-x
+    uid: 0
 
 commandTests:
   # .NET will not start without ICU: this is also the runtime's check.
@@ -74,6 +81,16 @@ commandTests:
     command: bash
     args: [-c, 'cd "$(mktemp -d)" && printf "[tools]\njq = \"1.7.1\"\n" > mise.toml && mise trust -q && mise x -- jq --version']
     expectedOutput: ['jq-1\.7\.1']
+  # That bwrap can make its namespaces as nonroot depends on the pod, not
+  # the image: a container here runs under Docker's default seccomp
+  # profile, which refuses them ("No permissions to create a new
+  # namespace"). The runner box's pod allows them (frontseat-enterprise's
+  # workspace controller) and a job on a tenant's runner proves it with
+  #   bwrap --ro-bind / / --unshare-all --die-with-parent true
+  - name: bubblewrap
+    command: bwrap
+    args: [--version]
+    expectedOutput: ['^bubblewrap 0\.']
   - name: the tools a job's steps reach for
     command: bash
     args: [-c, 'tar --version && gzip --version && curl --version && find --version && sed --version && grep --version && awk --version && ssh -V 2>&1 && echo tools-ok']

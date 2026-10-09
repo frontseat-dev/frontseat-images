@@ -12,6 +12,13 @@
 # and checks out and builds in _work, so both are nonroot's.
 # RUNNER_MANUALLY_TRAP_SIG has run.sh pass SIGTERM on to the listener, so
 # a stopped pod ends the job rather than abandoning it.
+#
+# bubblewrap is frontseat's sandbox: `frontseat publish` runs its effects
+# on a grid embedded in the job, and that grid confines each action with
+# bwrap (its own mount, pid, ipc, uts and net namespaces). bwrap is not
+# setuid here; as nonroot it makes a user namespace first, so the box must
+# be allowed to (the controller runs runner boxes in a pod user namespace
+# with an unmasked /proc; see frontseat-enterprise).
 
 include: images/base/apko.yaml
 
@@ -30,6 +37,7 @@ contents:
     - gzip
     - curl
     - openssh-client
+    - bubblewrap
 
 environment:
   HOME: /home/nonroot

@@ -2,8 +2,15 @@
 
 A GitHub Actions runner for one job: `base` plus the runner
 (`packages/actions-runner`), mise, bash (also `/bin/sh`), GNU coreutils,
-findutils, sed, grep, awk, tar and gzip, curl and the OpenSSH client. It
-runs as `nonroot` (65532), with `HOME` at `/home/nonroot`.
+findutils, sed, grep, awk, tar and gzip, curl, the OpenSSH client and
+bubblewrap. It runs as `nonroot` (65532), with `HOME` at `/home/nonroot`.
+
+bubblewrap (`bwrap`) is frontseat's sandbox: `frontseat publish` runs its
+effects on a grid inside the job, which confines each action with it.
+`bwrap` is not setuid; as nonroot it needs the pod to allow user
+namespaces, a seccomp profile that lets it make them and an unmasked
+`/proc`, which the controller gives runner boxes. Under a plain `docker
+run` it reports `No permissions to create a new namespace`.
 
 The controller mounts the runner's just-in-time configuration, a Secret, at
 `/run/github-runner/jitconfig`; the entrypoint runs the runner once with
