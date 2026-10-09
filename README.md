@@ -9,6 +9,7 @@ and linux/arm64, published to `ghcr.io/frontseat-dev`, signed with cosign.
 | [`base`](images/base) | What every Frontseat service runs on: Wolfi's base layout, CA bundle, timezones, git, a non-root user |
 | [`node`](images/node) | `base` plus Node.js 22: what Frontseat's Node services (the portal) run on |
 | [`buildbarn-runner`](images/buildbarn-runner) | `base` plus the tools Buildbarn's build actions run with |
+| [`github-runner`](images/github-runner) | `base` plus the GitHub Actions runner and mise: one job, from a just-in-time configuration |
 
 Wolfi does not have everything yet. What it lacks is built here with
 [melange](https://github.com/chainguard-dev/melange), only for these images
@@ -17,6 +18,7 @@ Wolfi does not have everything yet. What it lacks is built here with
 | Package | |
 |---|---|
 | [`mise`](packages/mise) | until Wolfi has it |
+| [`actions-runner`](packages/actions-runner) | the GitHub Actions runner, which Wolfi does not package |
 
 ## Layout
 
@@ -66,7 +68,8 @@ Consumers pin a release by digest, e.g.
 The workflows' actions are kept current by Renovate. These are pinned by
 checksum and moved by hand: apko, container-structure-test and git-cliff in
 `.github/actions/setup/action.yml`, melange's image in
-`.github/workflows/packages.yml`, mise in `packages/mise/melange.yaml`.
+`.github/workflows/packages.yml`, mise in `packages/mise/melange.yaml`, the
+Actions runner in `packages/actions-runner/melange.yaml`.
 
 ## Building locally
 

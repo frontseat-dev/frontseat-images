@@ -1,0 +1,70 @@
+# The GitHub Actions runner's own release, until Wolfi has it (README.md).
+# It is .NET, self-contained: the runtime ships in bin/, but ICU, Kerberos
+# (GSSAPI) and OpenSSL it loads at run time, so they are named here; its
+# run.sh and run-helper.sh are bash. The layout is the release's own
+# (run.sh, bin/, externals/ with Node.js for JavaScript actions), under
+# /usr/share/actions-runner.
+package:
+  name: actions-runner
+  version: 2.338.0
+  epoch: 0
+  description: The runner for GitHub Actions
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - bash
+      - icu
+      - krb5-libs
+      - libssl3
+      - zlib
+      - libstdc++
+      - libgcc
+      - ca-certificates-bundle
+
+environment:
+  contents:
+    repositories:
+      - https://packages.wolfi.dev/os
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    packages:
+      - busybox
+
+pipeline:
+  # The release's tarballs have no top directory.
+  - if: ${{build.arch}} == 'aarch64'
+    uses: fetch
+    with:
+      uri: https://github.com/actions/runner/releases/download/v${{package.version}}/actions-runner-linux-arm64-${{package.version}}.tar.gz
+      expected-sha256: 628b4a7258487b80c1d3c221095a7ded349f5ae0175fd3dfab708d07428f041b
+      strip-components: 0
+  - if: ${{build.arch}} == 'x86_64'
+    uses: fetch
+    with:
+      uri: https://github.com/actions/runner/releases/download/v${{package.version}}/actions-runner-linux-x64-${{package.version}}.tar.gz
+      expected-sha256: af4b794c1bc41d73d40535e3fe092a39f9679cd8d965954c2aca25a05ca41d32
+      strip-components: 0
+  # Two things of the release's are left out, as nothing here can load them:
+  # - externals/node*_alpine (x64 only): musl Node.js, which the runner
+  #   mounts into container jobs on Alpine images;
+  # - bin/libcoreclrtraceptprovider.so: .NET's LTTng tracing, linked to
+  #   liblttng-ust.so.0, which Wolfi does not have (it has .so.1). .NET
+  #   loads it only if it is there.
+  - runs: |
+      dest="${{targets.destdir}}/usr/share/actions-runner"
+      mkdir -p "$dest"
+      cp -a bin externals config.sh env.sh run.sh run-helper.sh.template safe_sleep.sh "$dest/"
+      rm -rf "$dest"/externals/*_alpine "$dest/bin/libcoreclrtraceptprovider.so"
+
+test:
+  environment:
+    contents:
+      repositories:
+        - https://packages.wolfi.dev/os
+      keyring:
+        - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      packages:
+        - busybox
+  pipeline:
+    - runs: /usr/share/actions-runner/bin/Runner.Listener --version | grep -Fx ${{package.version}}
