@@ -3,6 +3,13 @@
 # by its installer init container (no Buildbarn here) and runs each action as
 # uid 65534, unsandboxed and unprivileged.
 #
+# A worker with a FUSE build directory runs bb_worker and bb_runner in this
+# image too, in a user namespace of their own, so bb_worker can mount the
+# build directory where bb_runner's actions see it:
+# - unshare (util-linux-misc, 2.39 or later for --map-users=all) makes it;
+# - mount (util-linux) puts /dev/null over /dev/fuse once bb_worker holds it;
+# - tini is the container's first process, so either one exiting ends it.
+#
 # - a compiler toolchain, pkg-config, Python (git comes with base);
 # - xvfb-run, xauth, GTK 3, libXtst, fontconfig and fonts: a virtual display
 #   for SWT/GTK Eclipse UI tests (Tycho's uitest harness runs the workbench
@@ -41,6 +48,9 @@ contents:
     - unzip
     - docker-cli
     - mise
+    - util-linux-misc
+    - mount
+    - tini
 
 environment:
   MISE_DATA_DIR: /mise/data
