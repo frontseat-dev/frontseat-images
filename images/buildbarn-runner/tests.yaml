@@ -51,6 +51,18 @@ commandTests:
     command: docker
     args: [--version]
     expectedOutput: ['Docker version']
+  - name: unshare, with --map-users=all (util-linux 2.39 or later)
+    command: unshare
+    args: [--version]
+    expectedOutput: ['util-linux 2\.(39|[4-9][0-9])']
+  - name: mount, from util-linux
+    command: mount
+    args: [--version]
+    expectedOutput: ['util-linux 2\.']
+  - name: tini
+    command: tini
+    args: [--version]
+    expectedOutput: ['tini version 0\.19']
   - name: fonts for SWT and AWT
     command: fc-list
     expectedOutput: ['DejaVu']
