@@ -18,6 +18,8 @@
 #   keyboard maps, and /tmp/.X11-unix made for it, as it runs as uid 65534;
 #   the JDK's AWT dlopens libXtst; SWT and AWT need /etc/fonts);
 # - ICU, so .NET runs with real cultures rather than the invariant one;
+# - OpenSSL 3's libssl beside base's 4.0: .NET and the PostgreSQL
+#   binaries a suite starts load libssl.so.3;
 # - the Docker CLI, for a mounted docker.sock;
 # - mise (packages/mise), which wraps every action (mise x --) and fetches
 #   the toolchains a workspace pins. Everything it writes lives under /mise,
@@ -44,6 +46,7 @@ contents:
     - ttf-dejavu
     - gawk
     - icu
+    - libssl3
     - curl
     - unzip
     - docker-cli
