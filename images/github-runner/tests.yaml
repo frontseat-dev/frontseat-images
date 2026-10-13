@@ -99,6 +99,10 @@ commandTests:
     command: bash
     args: [-c, 'tar --version && gzip --version && curl --version && find --version && sed --version && grep --version && awk --version && ssh -V 2>&1 && echo tools-ok']
     expectedOutput: ['tools-ok']
+  - name: gpg makes a key and signs with it, as a release does
+    command: bash
+    args: [-c, 'export GNUPGHOME="$(mktemp -d)" && cd "$GNUPGHOME" && gpg --batch --passphrase "" --quick-gen-key probe@example.com default default never && echo hi > f && gpg --batch --pinentry-mode loopback --passphrase "" --detach-sign f && gpg --verify f.sig f 2>&1 && echo gpg-ok']
+    expectedOutput: ['gpg-ok']
   # The entrypoint's command, without the Secret: the listener starts, finds
   # no configuration and ends (run.sh exits 0 for it) rather than idling.
   - name: without a JIT configuration, the runner ends
