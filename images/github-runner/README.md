@@ -2,8 +2,8 @@
 
 A GitHub Actions runner for one job: `base` plus the runner
 (`packages/actions-runner`), mise, bash (also `/bin/sh`), GNU coreutils,
-findutils, sed, grep, awk, tar and gzip, curl, the OpenSSH client and
-bubblewrap. It runs as `nonroot` (65532), with `HOME` at `/home/nonroot`.
+findutils, sed, grep, awk, tar and gzip, curl, the OpenSSH client, gpg
+and bubblewrap. It runs as `nonroot` (65532), with `HOME` at `/home/nonroot`.
 
 bubblewrap (`bwrap`) is frontseat's sandbox: `frontseat publish` runs its
 effects on a grid inside the job, which confines each action with it.

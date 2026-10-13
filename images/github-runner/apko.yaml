@@ -41,6 +41,9 @@ contents:
     # ldd, getent, getconf, locale: what setup actions probe the system with
     # (jdx/mise-action reads the C library from `ldd --version`).
     - posix-libc-utils
+    # gpg, which a hosted runner has: a release imports its signing key
+    # and signs what it publishes with it.
+    - gnupg
 
 environment:
   HOME: /home/nonroot
