@@ -31,10 +31,10 @@ fileExistenceTests:
     shouldExist: true
 
 commandTests:
-  - name: OpenSSL 3's libssl, which .NET and PostgreSQL load
+  - name: the libraries .NET and a PostgreSQL server load beyond base's
     command: bash
-    args: [-c, 'ls /usr/lib/libssl.so.3 && echo libssl3-ok']
-    expectedOutput: ['libssl3-ok']
+    args: [-c, 'ls /usr/lib/libssl.so.3 /usr/lib/liblz4.so.1 /usr/lib/libxml2.so.2 && echo libs-ok']
+    expectedOutput: ['libs-ok']
   - name: mise
     command: mise
     args: [--version]
