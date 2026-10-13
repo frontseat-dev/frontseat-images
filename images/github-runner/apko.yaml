@@ -42,8 +42,10 @@ contents:
     # (jdx/mise-action reads the C library from `ldd --version`).
     - posix-libc-utils
     # gpg, which a hosted runner has: a release imports its signing key
-    # and signs what it publishes with it.
-    - gnupg
+    # and signs what it publishes with it. Wolfi splits GnuPG: gpg is the
+    # command, gpg-agent holds the secret keys it signs with.
+    - gpg
+    - gpg-agent
 
 environment:
   HOME: /home/nonroot
