@@ -57,6 +57,7 @@ x86_64 libbrotlienc1 1.2.0-r6
 x86_64 libbz2-1 1.0.8-r25
 x86_64 libcom_err 1.47.4-r3
 x86_64 libcrypt1-2.44 2.44-r8
+x86_64 libcrypto3 3.6.5-r2
 x86_64 libcurl-openssl4 8.22.0-r4
 x86_64 libdrm-libs 2.4.134-r3
 x86_64 libelf 0.196-r1
@@ -73,6 +74,7 @@ x86_64 libice 1.1.2-r8
 x86_64 libicu78 78.3-r4
 x86_64 libidn2 2.3.8-r10
 x86_64 libldap-2.7 2.7.1-r2
+x86_64 liblz4-1 1.10.0-r11
 x86_64 libmount 2.42.4-r0
 x86_64 libnghttp2-14 1.70.0-r5
 x86_64 libpciaccess 0.19-r4
@@ -85,6 +87,7 @@ x86_64 libselinux 3.11-r2
 x86_64 libsepol 3.11-r3
 x86_64 libsm 1.2.6-r6
 x86_64 libsmartcols 2.42.4-r0
+x86_64 libssl3 3.6.5-r2
 x86_64 libstdc++ 16.2.0-r1
 x86_64 libstdc++-dev 16.2.0-r1
 x86_64 libsystemd 261.3-r5
@@ -110,6 +113,7 @@ x86_64 libxinerama-libs 1.1.6-r7
 x86_64 libxkbcommon 1.13.2-r3
 x86_64 libxkbfile 1.2.0-r3
 x86_64 libxml2-16 2.15.4-r1
+x86_64 libxml2-2.13-2 2.13.9-r1
 x86_64 libxmu 1.3.1-r6
 x86_64 libxrandr 1.5.5-r7
 x86_64 libxrender 0.9.12-r10
@@ -224,6 +228,7 @@ aarch64 libbrotlienc1 1.2.0-r6
 aarch64 libbz2-1 1.0.8-r25
 aarch64 libcom_err 1.47.4-r3
 aarch64 libcrypt1-2.44 2.44-r8
+aarch64 libcrypto3 3.6.5-r2
 aarch64 libcurl-openssl4 8.22.0-r4
 aarch64 libdrm-libs 2.4.134-r3
 aarch64 libelf 0.196-r1
@@ -240,6 +245,7 @@ aarch64 libice 1.1.2-r8
 aarch64 libicu78 78.3-r4
 aarch64 libidn2 2.3.8-r10
 aarch64 libldap-2.7 2.7.1-r2
+aarch64 liblz4-1 1.10.0-r11
 aarch64 libmount 2.42.4-r0
 aarch64 libnghttp2-14 1.70.0-r5
 aarch64 libpcre2-8-0 10.49-r1
@@ -251,6 +257,7 @@ aarch64 libselinux 3.11-r2
 aarch64 libsepol 3.11-r3
 aarch64 libsm 1.2.6-r6
 aarch64 libsmartcols 2.42.4-r0
+aarch64 libssl3 3.6.5-r2
 aarch64 libstdc++ 16.2.0-r1
 aarch64 libstdc++-dev 16.2.0-r1
 aarch64 libsystemd 261.3-r5
@@ -276,6 +283,7 @@ aarch64 libxinerama-libs 1.1.6-r7
 aarch64 libxkbcommon 1.13.2-r3
 aarch64 libxkbfile 1.2.0-r3
 aarch64 libxml2-16 2.15.4-r1
+aarch64 libxml2-2.13-2 2.13.9-r1
 aarch64 libxmu 1.3.1-r6
 aarch64 libxrandr 1.5.5-r7
 aarch64 libxrender 0.9.12-r10
