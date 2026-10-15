@@ -19,6 +19,9 @@
 # setuid here; as nonroot it makes a user namespace first, so the box must
 # be allowed to (the controller runs runner boxes in a pod user namespace
 # with an unmasked /proc; see frontseat-enterprise).
+#
+# The runner refuses a job a fork's pull request triggered: its
+# job-started hook fails it before any step runs.
 
 include: images/base/apko.yaml
 
@@ -50,6 +53,10 @@ contents:
 environment:
   HOME: /home/nonroot
   RUNNER_MANUALLY_TRAP_SIG: "1"
+  # A job a fork's pull request triggered fails before its first step
+  # (packages/actions-runner): no workflow can unset the runner's own
+  # environment.
+  ACTIONS_RUNNER_HOOK_JOB_STARTED: /usr/share/actions-runner/hooks/job-started.sh
 
 paths:
   - { path: /home/nonroot, type: directory, permissions: 0o755, uid: 65532, gid: 65532 }
