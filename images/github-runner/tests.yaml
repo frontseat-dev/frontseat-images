@@ -8,6 +8,7 @@ metadataTest:
   envVars:
     - { key: HOME, value: /home/nonroot }
     - { key: RUNNER_MANUALLY_TRAP_SIG, value: "1" }
+    - { key: ACTIONS_RUNNER_HOOK_JOB_STARTED, value: /usr/share/actions-runner/hooks/job-started.sh }
   entrypoint:
     - /bin/bash
     - -c
@@ -32,6 +33,10 @@ fileExistenceTests:
     path: /home/nonroot
     shouldExist: true
     uid: 65532
+  - name: the job-started hook that refuses a fork's pull request
+    path: /usr/share/actions-runner/hooks/job-started.sh
+    shouldExist: true
+    isExecutableBy: any
   - name: Node.js for JavaScript actions
     path: /usr/share/actions-runner/externals/node24/bin/node
     shouldExist: true
@@ -104,6 +109,29 @@ commandTests:
     # No variables: the test runner expands them before bash sees them.
     args: [-c, 'cd "$(mktemp -d)" && chmod 700 . && gpg --homedir "$(pwd)" --batch --passphrase "" --quick-gen-key probe@example.com default default never && echo hi > f && gpg --homedir "$(pwd)" --batch --pinentry-mode loopback --passphrase "" --detach-sign f && gpg --homedir "$(pwd)" --verify f.sig f 2>&1 && echo gpg-ok']
     expectedOutput: ['gpg-ok']
+  # The job-started hook, against the events a job can come from. No
+  # variables: the test runner expands them before bash sees them.
+  - name: a fork's pull request is refused
+    command: bash
+    args: [-c, 'printf %s "{\"pull_request\":{\"head\":{\"repo\":{\"full_name\":\"someone/widgets\",\"fork\":true}}},\"repository\":{\"full_name\":\"acme/widgets\"}}" > /tmp/e.json && env GITHUB_EVENT_PATH=/tmp/e.json /usr/share/actions-runner/hooks/job-started.sh || echo refused']
+    expectedOutput: ['refused']
+    expectedError: ['does not run a pull request from a fork']
+  - name: a pull request whose head repository is gone is refused
+    command: bash
+    args: [-c, 'printf %s "{\"pull_request\":{\"head\":{\"repo\":null}},\"repository\":{\"full_name\":\"acme/widgets\"}}" > /tmp/e.json && env GITHUB_EVENT_PATH=/tmp/e.json /usr/share/actions-runner/hooks/job-started.sh || echo refused']
+    expectedOutput: ['refused']
+  - name: the repository's own pull request runs
+    command: bash
+    args: [-c, 'printf %s "{\"pull_request\":{\"head\":{\"repo\":{\"full_name\":\"acme/widgets\",\"fork\":false}}},\"repository\":{\"full_name\":\"acme/widgets\"}}" > /tmp/e.json && env GITHUB_EVENT_PATH=/tmp/e.json /usr/share/actions-runner/hooks/job-started.sh && echo runs']
+    expectedOutput: ['runs']
+  - name: a job without its event is refused
+    command: bash
+    args: [-c, 'env -u GITHUB_EVENT_PATH /usr/share/actions-runner/hooks/job-started.sh || echo refused']
+    expectedOutput: ['refused']
+  - name: a push runs
+    command: bash
+    args: [-c, 'printf %s "{\"ref\":\"refs/heads/main\",\"repository\":{\"full_name\":\"acme/widgets\"}}" > /tmp/e.json && env GITHUB_EVENT_PATH=/tmp/e.json /usr/share/actions-runner/hooks/job-started.sh && echo runs']
+    expectedOutput: ['runs']
   # The entrypoint's command, without the Secret: the listener starts, finds
   # no configuration and ends (run.sh exits 0 for it) rather than idling.
   - name: without a JIT configuration, the runner ends
