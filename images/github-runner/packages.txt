@@ -3,7 +3,7 @@ x86_64 actions-runner 2.338.0-r1
 x86_64 bash 5.3-r14
 x86_64 bash-binsh 5.3-r14
 x86_64 bubblewrap 0.13.1-r0
-x86_64 ca-certificates-bundle 20260909-r2
+x86_64 ca-certificates-bundle 20260909-r3
 x86_64 coreutils 9.12-r4
 x86_64 curl 8.23.0-r1
 x86_64 cyrus-sasl-heimdal-libs 2.1.28-r58
@@ -38,7 +38,7 @@ x86_64 libbz2-1 1.0.8-r25
 x86_64 libcap 2.78-r4
 x86_64 libcom_err 1.47.4-r3
 x86_64 libcrypt1-2.44 2.44-r8
-x86_64 libcrypto3 3.6.5-r4
+x86_64 libcrypto3 3.6.5-r5
 x86_64 libcurl-openssl4 8.23.0-r1
 x86_64 libedit 3.1-r20
 x86_64 libexpat1 2.9.0-r0
@@ -54,7 +54,7 @@ x86_64 libpcre2-8-0 10.49-r1
 x86_64 libpsl 0.23.3-r2
 x86_64 libselinux 3.11-r2
 x86_64 libsepol 3.11-r3
-x86_64 libssl3 3.6.5-r4
+x86_64 libssl3 3.6.5-r5
 x86_64 libstdc++ 16.2.0-r1
 x86_64 libunistring 1.5-r0
 x86_64 libverto 0.3.2-r9
@@ -83,7 +83,7 @@ aarch64 actions-runner 2.338.0-r1
 aarch64 bash 5.3-r14
 aarch64 bash-binsh 5.3-r14
 aarch64 bubblewrap 0.13.1-r0
-aarch64 ca-certificates-bundle 20260909-r2
+aarch64 ca-certificates-bundle 20260909-r3
 aarch64 coreutils 9.12-r4
 aarch64 curl 8.23.0-r1
 aarch64 cyrus-sasl-heimdal-libs 2.1.28-r58
@@ -118,7 +118,7 @@ aarch64 libbz2-1 1.0.8-r25
 aarch64 libcap 2.78-r4
 aarch64 libcom_err 1.47.4-r3
 aarch64 libcrypt1-2.44 2.44-r8
-aarch64 libcrypto3 3.6.5-r4
+aarch64 libcrypto3 3.6.5-r5
 aarch64 libcurl-openssl4 8.23.0-r1
 aarch64 libedit 3.1-r20
 aarch64 libexpat1 2.9.0-r0
@@ -134,7 +134,7 @@ aarch64 libpcre2-8-0 10.49-r1
 aarch64 libpsl 0.23.3-r2
 aarch64 libselinux 3.11-r2
 aarch64 libsepol 3.11-r3
-aarch64 libssl3 3.6.5-r4
+aarch64 libssl3 3.6.5-r5
 aarch64 libstdc++ 16.2.0-r1
 aarch64 libunistring 1.5-r0
 aarch64 libverto 0.3.2-r9
