@@ -10,9 +10,9 @@ x86_64 keyutils-libs 1.6.3-r41
 x86_64 krb5-conf 1.0-r10
 x86_64 krb5-libs 1.22.2-r5
 x86_64 ld-linux-2.44 2.44-r9
-x86_64 libbrotlicommon1 1.2.1-r0
-x86_64 libbrotlidec1 1.2.1-r0
-x86_64 libbrotlienc1 1.2.1-r0
+x86_64 libbrotlicommon1 1.2.1-r1
+x86_64 libbrotlidec1 1.2.1-r1
+x86_64 libbrotlienc1 1.2.1-r1
 x86_64 libcom_err 1.47.4-r3
 x86_64 libcrypt1-2.44 2.44-r9
 x86_64 libcurl-openssl4 8.23.0-r2
@@ -49,9 +49,9 @@ aarch64 keyutils-libs 1.6.3-r41
 aarch64 krb5-conf 1.0-r10
 aarch64 krb5-libs 1.22.2-r5
 aarch64 ld-linux-2.44 2.44-r9
-aarch64 libbrotlicommon1 1.2.1-r0
-aarch64 libbrotlidec1 1.2.1-r0
-aarch64 libbrotlienc1 1.2.1-r0
+aarch64 libbrotlicommon1 1.2.1-r1
+aarch64 libbrotlidec1 1.2.1-r1
+aarch64 libbrotlienc1 1.2.1-r1
 aarch64 libcom_err 1.47.4-r3
 aarch64 libcrypt1-2.44 2.44-r9
 aarch64 libcurl-openssl4 8.23.0-r2
