@@ -18,7 +18,7 @@ x86_64 libcrypt1-2.44 2.44-r9
 x86_64 libcurl-openssl4 8.23.0-r2
 x86_64 libexpat1 2.9.0-r0
 x86_64 libgcc 16.2.0-r1
-x86_64 libidn2 2.3.8-r10
+x86_64 libidn2 2.3.8-r11
 x86_64 libldap-2.7 2.7.2-r0
 x86_64 libnghttp2-14 1.70.0-r5
 x86_64 libpcre2-8-0 10.49-r1
@@ -26,8 +26,8 @@ x86_64 libpsl 0.23.3-r2
 x86_64 libunistring 1.5-r0
 x86_64 libverto 0.3.2-r9
 x86_64 libxcrypt 4.5.2-r6
-x86_64 ncurses 6.6.20261017-r0
-x86_64 ncurses-terminfo-base 6.6.20261017-r0
+x86_64 ncurses 6.6.20261024-r0
+x86_64 ncurses-terminfo-base 6.6.20261024-r0
 x86_64 nghttp3 1.18.0-r1
 x86_64 ngtcp2 1.25.0-r5
 x86_64 openssl-4.0-libcrypto 4.0.3-r8
@@ -57,7 +57,7 @@ aarch64 libcrypt1-2.44 2.44-r9
 aarch64 libcurl-openssl4 8.23.0-r2
 aarch64 libexpat1 2.9.0-r0
 aarch64 libgcc 16.2.0-r1
-aarch64 libidn2 2.3.8-r10
+aarch64 libidn2 2.3.8-r11
 aarch64 libldap-2.7 2.7.2-r0
 aarch64 libnghttp2-14 1.70.0-r5
 aarch64 libpcre2-8-0 10.49-r1
@@ -65,8 +65,8 @@ aarch64 libpsl 0.23.3-r2
 aarch64 libunistring 1.5-r0
 aarch64 libverto 0.3.2-r9
 aarch64 libxcrypt 4.5.2-r6
-aarch64 ncurses 6.6.20261017-r0
-aarch64 ncurses-terminfo-base 6.6.20261017-r0
+aarch64 ncurses 6.6.20261024-r0
+aarch64 ncurses-terminfo-base 6.6.20261024-r0
 aarch64 nghttp3 1.18.0-r1
 aarch64 ngtcp2 1.25.0-r5
 aarch64 openssl-4.0-libcrypto 4.0.3-r8
