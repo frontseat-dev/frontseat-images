@@ -21,6 +21,9 @@
 # - OpenSSL 3's libssl beside base's 4.0, LZ4 and libxml2 2.x: .NET and
 #   the PostgreSQL server a suite starts load libssl.so.3, and the server
 #   liblz4.so.1 and libxml2.so.2;
+# - NSS, NSPR, ALSA's libasound, GBM and libudev: what Playwright's
+#   Chromium headless shell loads beyond GTK and fontconfig, for a
+#   browser test (readelf -d on chrome-headless-shell lists them);
 # - the Docker CLI, for a mounted docker.sock;
 # - mise (packages/mise), which wraps every action (mise x --) and fetches
 #   the toolchains a workspace pins. Everything it writes lives under /mise,
@@ -51,6 +54,11 @@ contents:
     - liblz4-1
     # libxml2.so.2: Wolfi's libxml2 2.15 is libxml2.so.16.
     - libxml2-2.13-2
+    - libnss
+    - libnspr
+    - alsa-lib
+    - mesa-gbm
+    - libudev
     - curl
     - unzip
     - docker-cli
