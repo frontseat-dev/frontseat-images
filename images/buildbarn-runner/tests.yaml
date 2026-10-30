@@ -35,6 +35,10 @@ commandTests:
     command: bash
     args: [-c, 'ls /usr/lib/libssl.so.3 /usr/lib/liblz4.so.1 /usr/lib/libxml2.so.2 && echo libs-ok']
     expectedOutput: ['libs-ok']
+  - name: the libraries Playwright's Chromium headless shell loads beyond GTK's
+    command: bash
+    args: [-c, 'ls /usr/lib/libnss3.so /usr/lib/libnssutil3.so /usr/lib/libnspr4.so /usr/lib/libasound.so.2 /usr/lib/libgbm.so.1 /usr/lib/libudev.so.1 && echo libs-ok']
+    expectedOutput: ['libs-ok']
   - name: mise
     command: mise
     args: [--version]
