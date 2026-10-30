@@ -20,9 +20,6 @@ fileExistenceTests:
     path: /mise/cache
     shouldExist: true
     permissions: drwxrwxrwx
-  - name: ICU, for .NET's cultures
-    path: /usr/lib/libicuuc.so.78
-    shouldExist: true
   - name: libXtst, for the JDK's AWT
     path: /usr/lib/libXtst.so.6
     shouldExist: true
@@ -31,6 +28,10 @@ fileExistenceTests:
     shouldExist: true
 
 commandTests:
+  - name: ICU, for .NET's cultures, at whichever major version Wolfi ships
+    command: bash
+    args: [-c, 'ls /usr/lib/libicuuc.so.[0-9]* >/dev/null && echo icu-ok']
+    expectedOutput: ['icu-ok']
   - name: the libraries .NET and a PostgreSQL server load beyond base's
     command: bash
     args: [-c, 'ls /usr/lib/libssl.so.3 /usr/lib/liblz4.so.1 /usr/lib/libxml2.so.2 && echo libs-ok']
