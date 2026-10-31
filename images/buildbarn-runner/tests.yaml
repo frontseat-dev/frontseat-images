@@ -72,6 +72,14 @@ commandTests:
     command: tini
     args: [--version]
     expectedOutput: ['tini version 0\.19']
+  - name: bubblewrap, with which the workers' runner confines each action
+    command: bwrap
+    args: [--version]
+    expectedOutput: ['bubblewrap 0\.(1[0-9]|[2-9][0-9])']
+  - name: slirp4netns, an action's own network beyond the worker
+    command: slirp4netns
+    args: [--version]
+    expectedOutput: ['slirp4netns version 1\.']
   - name: fonts for SWT and AWT
     command: fc-list
     expectedOutput: ['DejaVu']

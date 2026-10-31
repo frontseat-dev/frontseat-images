@@ -1,11 +1,14 @@
 # Buildbarn's runner: the root filesystem a build action executes in, which
-# is base (images/base) plus the tools actions expect. bb_runner is staged in
-# by its installer init container (no Buildbarn here) and runs each action as
-# uid 65534, unsandboxed and unprivileged.
+# is base (images/base) plus the tools actions expect. The workers' runner
+# rides in as an image volume of its own (no Buildbarn here) and runs each
+# action as uid 65534, unprivileged, confined with:
+# - bubblewrap, in user, pid, ipc and network namespaces of its own;
+# - slirp4netns, the network of its own an action that reaches beyond the
+#   worker gets, through user-mode networking.
 #
-# A worker with a FUSE build directory runs bb_worker and bb_runner in this
+# A worker with a FUSE build directory runs bb_worker and the runner in this
 # image too, in a user namespace of their own, so bb_worker can mount the
-# build directory where bb_runner's actions see it:
+# build directory where the runner's actions see it:
 # - unshare (util-linux-misc, 2.39 or later for --map-users=all) makes it;
 # - mount (util-linux) puts /dev/null over /dev/fuse once bb_worker holds it;
 # - tini is the container's first process, so either one exiting ends it.
@@ -66,6 +69,8 @@ contents:
     - util-linux-misc
     - mount
     - tini
+    - bubblewrap
+    - slirp4netns
 
 environment:
   MISE_DATA_DIR: /mise/data
