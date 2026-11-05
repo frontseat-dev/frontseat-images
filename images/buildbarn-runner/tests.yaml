@@ -43,7 +43,7 @@ commandTests:
   - name: mise
     command: mise
     args: [--version]
-    expectedOutput: ['2026\.8\.12']
+    expectedOutput: ['2026\.11\.2']
   - name: a C toolchain
     command: gcc
     args: [--version]
@@ -94,3 +94,38 @@ commandTests:
     command: bash
     args: [-c, 'cd "$(mktemp -d)" && printf "[tools]\njq = \"1.7.1\"\n" > mise.toml && mise x -- jq --version']
     expectedOutput: ['jq-1\.7\.1']
+  # A build's tools are held to the repository's lock: what is downloaded
+  # must have the checksum the lock holds. A mise older than the lock's
+  # format reads no lock at all and installs whatever it is served, so
+  # this is held with a lock of the format mise writes today: what it
+  # pins is installed, and what is not as it says is refused.
+  - name: mise installs what its lock pins and refuses what is not as the lock says
+    command: bash
+    args:
+      - -c
+      - |
+        set -e
+        cd "$(mktemp -d)"
+        printf '[tools]\n"http:notice" = { version = "1.8.1", url = "https://raw.githubusercontent.com/jqlang/jq/jq-{{version}}/COPYING" }\n' > mise.toml
+        cat > mise.lock <<'EOF'
+        lockfile_version = 4
+
+        [[tools."http:notice"]]
+        version = "1.8.1"
+        backend = "http:notice"
+        specifiers = ["1.8.1"]
+
+        [tools."http:notice"."platforms.linux-arm64"]
+        checksum = "sha256:ad2b4a266b2268939c1446979759706077421cf906a203aa188c6f396e8cfd74"
+        url = "https://raw.githubusercontent.com/jqlang/jq/jq-1.8.1/COPYING"
+
+        [tools."http:notice"."platforms.linux-x64"]
+        checksum = "sha256:ad2b4a266b2268939c1446979759706077421cf906a203aa188c6f396e8cfd74"
+        url = "https://raw.githubusercontent.com/jqlang/jq/jq-1.8.1/COPYING"
+        EOF
+        mise trust -q
+        env MISE_DATA_DIR="$(pwd)/pinned" MISE_LOCKED=1 MISE_YES=1 mise install >/dev/null 2>&1 && echo pinned-installed
+        sed -i 's/sha256:ad2b4a26/sha256:00000000/' mise.lock
+        if env MISE_DATA_DIR="$(pwd)/wrong" MISE_LOCKED=1 MISE_YES=1 mise install >/dev/null 2>&1; then echo wrong-installed; else echo wrong-refused; fi
+    expectedOutput: ['pinned-installed', 'wrong-refused']
+    excludedOutput: ['wrong-installed']

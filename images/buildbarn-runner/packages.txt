@@ -153,7 +153,7 @@ x86_64 make 4.4.1-r15
 x86_64 mcookie 2.42.4-r2
 x86_64 mesa-gbm 26.2.6-r0
 x86_64 mesa-libgallium 26.2.6-r0
-x86_64 mise 2026.8.12-r0
+x86_64 mise 2026.11.2-r0
 x86_64 mount 2.42.4-r2
 x86_64 mpc 1.4.1-r3
 x86_64 mpdecimal 4.0.1-r6
@@ -356,7 +356,7 @@ aarch64 make 4.4.1-r15
 aarch64 mcookie 2.42.4-r2
 aarch64 mesa-gbm 26.2.6-r0
 aarch64 mesa-libgallium 26.2.6-r0
-aarch64 mise 2026.8.12-r0
+aarch64 mise 2026.11.2-r0
 aarch64 mount 2.42.4-r2
 aarch64 mpc 1.4.1-r3
 aarch64 mpdecimal 4.0.1-r6

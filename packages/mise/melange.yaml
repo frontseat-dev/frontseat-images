@@ -1,7 +1,7 @@
 # mise's own release binary, until Wolfi has it (README.md).
 package:
   name: mise
-  version: 2026.8.12
+  version: 2026.11.2
   epoch: 0
   description: The front-end to your dev env
   copyright:
@@ -21,12 +21,12 @@ pipeline:
     uses: fetch
     with:
       uri: https://github.com/jdx/mise/releases/download/v${{package.version}}/mise-v${{package.version}}-linux-arm64.tar.gz
-      expected-sha256: 3ec7d4fd8ebd923794612a3cc89cb44617943845ebf0f4cea9a325dbb3756184
+      expected-sha256: 4d69f304a1501441cf455f6c7f96b117a10c27a568cdda3b5d1fa8e67476b038
   - if: ${{build.arch}} == 'x86_64'
     uses: fetch
     with:
       uri: https://github.com/jdx/mise/releases/download/v${{package.version}}/mise-v${{package.version}}-linux-x64.tar.gz
-      expected-sha256: 0c782233b97745fd3ed317ba3acbfd7d256e6268470373757f0cc48d57bb87e6
+      expected-sha256: c914dc3be1ad3588c3a7fa8ddae86c65e77eaf1777aa4a900c215e467f4c94a4
   - runs: |
       install -Dm755 bin/mise "${{targets.destdir}}/usr/bin/mise"
       install -Dm644 LICENSE "${{targets.destdir}}/usr/share/licenses/mise/LICENSE"

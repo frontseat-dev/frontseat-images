@@ -85,7 +85,7 @@ commandTests:
   - name: mise
     command: mise
     args: [--version]
-    expectedOutput: ['2026\.8\.12']
+    expectedOutput: ['2026\.11\.2']
   - name: mise installs and runs a pinned tool
     command: bash
     args: [-c, 'cd "$(mktemp -d)" && printf "[tools]\njq = \"1.7.1\"\n" > mise.toml && mise trust -q && mise x -- jq --version']
