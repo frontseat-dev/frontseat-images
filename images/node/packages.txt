@@ -10,7 +10,7 @@ x86_64 heimdal-libs 7.8.0-r55
 x86_64 icu78-data-full 78.3-r4
 x86_64 keyutils-libs 1.6.3-r41
 x86_64 krb5-conf 1.0-r10
-x86_64 krb5-libs 1.22.2-r5
+x86_64 krb5-libs 1.22.2-r6
 x86_64 ld-linux-2.44 2.44-r13
 x86_64 libbrotlicommon1 1.2.1-r3
 x86_64 libbrotlidec1 1.2.1-r3
@@ -27,10 +27,10 @@ x86_64 libnghttp2-14 1.71.0-r0
 x86_64 libpcre2-8-0 10.49-r3
 x86_64 libpsl 0.23.3-r4
 x86_64 libstdc++ 16.2.0-r2
-x86_64 libunistring 1.5-r0
+x86_64 libunistring 1.5-r1
 x86_64 libuv 1.53.0-r0
 x86_64 libverto 0.3.2-r11
-x86_64 libxcrypt 4.5.2-r7
+x86_64 libxcrypt 4.5.2-r8
 x86_64 lmdb 0.9.35-r3
 x86_64 ncurses 6.6.20261031-r0
 x86_64 ncurses-terminfo-base 6.6.20261031-r0
@@ -58,7 +58,7 @@ aarch64 heimdal-libs 7.8.0-r55
 aarch64 icu78-data-full 78.3-r4
 aarch64 keyutils-libs 1.6.3-r41
 aarch64 krb5-conf 1.0-r10
-aarch64 krb5-libs 1.22.2-r5
+aarch64 krb5-libs 1.22.2-r6
 aarch64 ld-linux-2.44 2.44-r13
 aarch64 libbrotlicommon1 1.2.1-r3
 aarch64 libbrotlidec1 1.2.1-r3
@@ -75,10 +75,10 @@ aarch64 libnghttp2-14 1.71.0-r0
 aarch64 libpcre2-8-0 10.49-r3
 aarch64 libpsl 0.23.3-r4
 aarch64 libstdc++ 16.2.0-r2
-aarch64 libunistring 1.5-r0
+aarch64 libunistring 1.5-r1
 aarch64 libuv 1.53.0-r0
 aarch64 libverto 0.3.2-r11
-aarch64 libxcrypt 4.5.2-r7
+aarch64 libxcrypt 4.5.2-r8
 aarch64 lmdb 0.9.35-r3
 aarch64 ncurses 6.6.20261031-r0
 aarch64 ncurses-terminfo-base 6.6.20261031-r0
