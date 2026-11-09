@@ -18,6 +18,7 @@ Wolfi does not have everything yet. What it lacks is built here with
 | Package | |
 |---|---|
 | [`mise`](packages/mise) | until Wolfi has it |
+| [`nono`](packages/nono) | what confines each build action; Wolfi does not package it |
 | [`actions-runner`](packages/actions-runner) | the GitHub Actions runner, which Wolfi does not package |
 
 ## Layout

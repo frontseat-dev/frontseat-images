@@ -1,0 +1,47 @@
+# nono's own release binary: what confines each action a runner runs
+# (README.md).
+package:
+  name: nono
+  version: 0.81.0
+  epoch: 0
+  description: Capability-based sandbox for a process, by Landlock and seccomp
+  copyright:
+    - license: Apache-2.0
+
+environment:
+  contents:
+    repositories:
+      - https://packages.wolfi.dev/os
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    packages:
+      - busybox
+
+pipeline:
+  - if: ${{build.arch}} == 'aarch64'
+    uses: fetch
+    with:
+      uri: https://github.com/nolabs-ai/nono/releases/download/v${{package.version}}/nono-v${{package.version}}-aarch64-unknown-linux-gnu.tar.gz
+      expected-sha256: a4d87ddb0917ef96224bcc41a2587318d7d0e92441e7ff454696e5980c9f7924
+      # The binary is at the archive's top, in no directory of its own.
+      strip-components: 0
+  - if: ${{build.arch}} == 'x86_64'
+    uses: fetch
+    with:
+      uri: https://github.com/nolabs-ai/nono/releases/download/v${{package.version}}/nono-v${{package.version}}-x86_64-unknown-linux-gnu.tar.gz
+      expected-sha256: 7ecc33ff9c349bdfa84b4496e7a7555f67bcc33f1e125c7df9efb653c6c4e569
+      # The binary is at the archive's top, in no directory of its own.
+      strip-components: 0
+  # The archive holds the binary alone; the licence is the release's own.
+  - uses: fetch
+    with:
+      uri: https://raw.githubusercontent.com/nolabs-ai/nono/v${{package.version}}/LICENSE
+      expected-sha256: 7310e9389f298b89bb2f90ac4b6081ed5b6a1c4a7b8547df5d52966a57cb0929
+      extract: false
+  - runs: |
+      install -Dm755 nono "${{targets.destdir}}/usr/bin/nono"
+      install -Dm644 LICENSE "${{targets.destdir}}/usr/share/licenses/nono/LICENSE"
+
+test:
+  pipeline:
+    - runs: nono --version

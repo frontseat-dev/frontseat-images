@@ -44,6 +44,15 @@ commandTests:
     command: mise
     args: [--version]
     expectedOutput: ['2026\.11\.2']
+  - name: nono
+    command: nono
+    args: [--version]
+    expectedOutput: ['0\.81\.0']
+  - name: nono confines a command to what it is given, with no privilege
+    command: sh
+    args: [-c, 'mkdir -p /tmp/given /tmp/nono && cd /tmp/given && HOME=/tmp/nono nono --silent wrap --allow /tmp/given --block-net -- sh -c "echo x > /tmp/given/made && if (echo x > /tmp/escaped) 2>/dev/null; then echo escaped; else echo held; fi"']
+    expectedOutput: ['held']
+    excludedOutput: ['escaped']
   - name: a C toolchain
     command: gcc
     args: [--version]
