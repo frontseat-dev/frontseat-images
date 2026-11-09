@@ -48,10 +48,13 @@ commandTests:
     command: nono
     args: [--version]
     expectedOutput: ['0\.81\.0']
-  - name: nono confines a command to what it is given, with no privilege
+  # Where the kernel cannot confine (Landlock, as under the QEMU that tests
+  # arm64 on an amd64 machine), nono refuses to run the command at all:
+  # it never runs one unconfined.
+  - name: nono confines a command to what it is given, with no privilege, or runs none
     command: sh
-    args: [-c, 'mkdir -p /tmp/given /tmp/nono && cd /tmp/given && HOME=/tmp/nono nono --silent wrap --allow /tmp/given --block-net -- sh -c "echo x > /tmp/given/made && if (echo x > /tmp/escaped) 2>/dev/null; then echo escaped; else echo held; fi"']
-    expectedOutput: ['held']
+    args: [-c, 'mkdir -p /tmp/given /tmp/nono && cd /tmp/given && HOME=/tmp/nono nono --silent wrap --allow /tmp/given --block-net -- sh -c "echo x > /tmp/given/made && if (echo x > /tmp/escaped) 2>/dev/null; then echo escaped; else echo held; fi" 2>/tmp/nono/err || { grep -q "Landlock not available" /tmp/nono/err && echo refused-unconfinable; }']
+    expectedOutput: ['^(held|refused-unconfinable)\n?$']
     excludedOutput: ['escaped']
   - name: a C toolchain
     command: gcc
