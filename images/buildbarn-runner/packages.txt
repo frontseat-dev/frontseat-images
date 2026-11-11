@@ -1,5 +1,5 @@
 # What images/buildbarn-runner/apko.yaml resolves to: arch, package, version. Written by refresh.yml.
-x86_64 Xvfb 21.1.25-r2
+x86_64 Xvfb 21.1.26-r0
 x86_64 alsa-lib 1.2.16.1-r5
 x86_64 aom-libs 3.15.3-r0
 x86_64 at-spi2-core 2.62.1-r0
@@ -33,9 +33,9 @@ x86_64 gdbm 1.26-r9
 x86_64 gdk-pixbuf 2.44.8-r6
 x86_64 git 2.56.0-r3
 x86_64 glib 2.90.1-r2
-x86_64 glibc-2.44 2.44-r15
-x86_64 glibc-2.44-dev 2.44-r15
-x86_64 glibc-2.44-locale-posix 2.44-r15
+x86_64 glibc-2.44 2.44-r16
+x86_64 glibc-2.44-dev 2.44-r16
+x86_64 glibc-2.44-locale-posix 2.44-r16
 x86_64 glycin-2 2.2.6-r0
 x86_64 glycin-2-libs 2.2.6-r0
 x86_64 gmp 6.3.0-r12
@@ -50,7 +50,7 @@ x86_64 isl 0.28-r6
 x86_64 keyutils-libs 1.6.3-r41
 x86_64 krb5-conf 1.0-r10
 x86_64 krb5-libs 1.22.2-r6
-x86_64 ld-linux-2.44 2.44-r15
+x86_64 ld-linux-2.44 2.44-r16
 x86_64 libLLVM-23 23.1.5-r0
 x86_64 libacl1 2.4.0-r5
 x86_64 libatk-1.0 2.62.1-r0
@@ -64,7 +64,7 @@ x86_64 libbrotlienc1 1.2.1-r3
 x86_64 libbz2-1 1.0.8-r30
 x86_64 libcap 2.78-r4
 x86_64 libcom_err 1.47.4-r5
-x86_64 libcrypt1-2.44 2.44-r15
+x86_64 libcrypt1-2.44 2.44-r16
 x86_64 libcurl-openssl4 8.23.0-r3
 x86_64 libdav1d 1.5.4-r4
 x86_64 libde265 1.1.3-r0
@@ -86,7 +86,7 @@ x86_64 libidn2 2.3.8-r12
 x86_64 libjpeg-turbo 3.2.1-r0
 x86_64 libjxl 0.12.0-r3
 x86_64 libldap-2.7 2.7.2-r0
-x86_64 liblz4-1 1.11.0-r0
+x86_64 liblz4-1 1.11.1-r0
 x86_64 libmount 2.42.4-r2
 x86_64 libnghttp2-14 1.71.0-r0
 x86_64 libnspr 4.40-r2
@@ -145,10 +145,10 @@ x86_64 libxt 1.3.1-r11
 x86_64 libxtst 1.2.6-r1
 x86_64 libxtst6 1.2.6-r1
 x86_64 libzstd1 1.5.7-r13
-x86_64 linux-headers 7.3.3-r0
+x86_64 linux-headers 7.3.4-r0
 x86_64 linux-pam 1.7.3-r3
 x86_64 lmdb 0.9.35-r3
-x86_64 lz4 1.11.0-r0
+x86_64 lz4 1.11.1-r0
 x86_64 make 4.4.1-r15
 x86_64 mcookie 2.42.4-r2
 x86_64 mesa-gbm 26.3.0-r0
@@ -200,11 +200,11 @@ x86_64 xauth 1.1.5-r5
 x86_64 xdpyinfo 1.4.0-r8
 x86_64 xkbcomp 1.5.0-r4
 x86_64 xkeyboard-config 2.49-r0
-x86_64 xvfb-run 21.1.25-r2
+x86_64 xvfb-run 21.1.26-r0
 x86_64 xz 5.8.4-r1
 x86_64 zlib 1.3.2.1_rc20260921-r2
 x86_64 zstd 1.5.7-r13
-aarch64 Xvfb 21.1.25-r2
+aarch64 Xvfb 21.1.26-r0
 aarch64 alsa-lib 1.2.16.1-r5
 aarch64 aom-libs 3.15.3-r0
 aarch64 at-spi2-core 2.62.1-r0
@@ -238,9 +238,9 @@ aarch64 gdbm 1.26-r9
 aarch64 gdk-pixbuf 2.44.8-r6
 aarch64 git 2.56.0-r3
 aarch64 glib 2.90.1-r2
-aarch64 glibc-2.44 2.44-r15
-aarch64 glibc-2.44-dev 2.44-r15
-aarch64 glibc-2.44-locale-posix 2.44-r15
+aarch64 glibc-2.44 2.44-r16
+aarch64 glibc-2.44-dev 2.44-r16
+aarch64 glibc-2.44-locale-posix 2.44-r16
 aarch64 glycin-2 2.2.6-r0
 aarch64 glycin-2-libs 2.2.6-r0
 aarch64 gmp 6.3.0-r12
@@ -255,7 +255,7 @@ aarch64 isl 0.28-r6
 aarch64 keyutils-libs 1.6.3-r41
 aarch64 krb5-conf 1.0-r10
 aarch64 krb5-libs 1.22.2-r6
-aarch64 ld-linux-2.44 2.44-r15
+aarch64 ld-linux-2.44 2.44-r16
 aarch64 libLLVM-23 23.1.5-r0
 aarch64 libacl1 2.4.0-r5
 aarch64 libatk-1.0 2.62.1-r0
@@ -269,7 +269,7 @@ aarch64 libbrotlienc1 1.2.1-r3
 aarch64 libbz2-1 1.0.8-r30
 aarch64 libcap 2.78-r4
 aarch64 libcom_err 1.47.4-r5
-aarch64 libcrypt1-2.44 2.44-r15
+aarch64 libcrypt1-2.44 2.44-r16
 aarch64 libcurl-openssl4 8.23.0-r3
 aarch64 libdav1d 1.5.4-r4
 aarch64 libde265 1.1.3-r0
@@ -291,7 +291,7 @@ aarch64 libidn2 2.3.8-r12
 aarch64 libjpeg-turbo 3.2.1-r0
 aarch64 libjxl 0.12.0-r3
 aarch64 libldap-2.7 2.7.2-r0
-aarch64 liblz4-1 1.11.0-r0
+aarch64 liblz4-1 1.11.1-r0
 aarch64 libmount 2.42.4-r2
 aarch64 libnghttp2-14 1.71.0-r0
 aarch64 libnspr 4.40-r2
@@ -349,10 +349,10 @@ aarch64 libxt 1.3.1-r11
 aarch64 libxtst 1.2.6-r1
 aarch64 libxtst6 1.2.6-r1
 aarch64 libzstd1 1.5.7-r13
-aarch64 linux-headers 7.3.3-r0
+aarch64 linux-headers 7.3.4-r0
 aarch64 linux-pam 1.7.3-r3
 aarch64 lmdb 0.9.35-r3
-aarch64 lz4 1.11.0-r0
+aarch64 lz4 1.11.1-r0
 aarch64 make 4.4.1-r15
 aarch64 mcookie 2.42.4-r2
 aarch64 mesa-gbm 26.3.0-r0
@@ -404,7 +404,7 @@ aarch64 xauth 1.1.5-r5
 aarch64 xdpyinfo 1.4.0-r8
 aarch64 xkbcomp 1.5.0-r4
 aarch64 xkeyboard-config 2.49-r0
-aarch64 xvfb-run 21.1.25-r2
+aarch64 xvfb-run 21.1.26-r0
 aarch64 xz 5.8.4-r1
 aarch64 zlib 1.3.2.1_rc20260921-r2
 aarch64 zstd 1.5.7-r13
