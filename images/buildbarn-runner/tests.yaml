@@ -12,6 +12,12 @@ metadataTest:
   workdir: /worker
 
 fileExistenceTests:
+  - name: the working directory, the image user's own, as an OpenShell sandbox's workspace must be
+    path: /worker
+    shouldExist: true
+    permissions: drwxr-xr-x
+    uid: 65532
+    gid: 65532
   - name: mise's state, open to every user
     path: /mise/data
     shouldExist: true

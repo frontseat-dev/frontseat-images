@@ -93,7 +93,9 @@ paths:
   - { path: /mise/state, type: directory, permissions: 0o777, uid: 0, gid: 0 }
   - { path: /tmp/mise, type: directory, permissions: 0o777, uid: 0, gid: 0 }
   - { path: /tmp/.X11-unix, type: directory, permissions: 0o1777, uid: 0, gid: 0 }
-  - { path: /worker, type: directory, permissions: 0o755, uid: 0, gid: 0 }
+  # The working directory is the image user's own: OpenShell makes a
+  # sandbox's workspace its user's home, and refuses one it does not own.
+  - { path: /worker, type: directory, permissions: 0o755, uid: 65532, gid: 65532 }
 
 work-dir: /worker
 
