@@ -14,6 +14,8 @@
 # - tini is the container's first process, so either one exiting ends it.
 #
 # - a compiler toolchain, pkg-config, Python (git comes with base);
+# - git-daemon, Wolfi's subpackage of git that holds git-http-backend: a
+#   test serves a repository over HTTP with it, as git's own tests do;
 # - xvfb-run, xauth, GTK 3, libXtst, fontconfig and fonts: a virtual display
 #   for SWT/GTK Eclipse UI tests (Tycho's uitest harness runs the workbench
 #   under xvfb-run, which parses its display number with awk and waits for
@@ -42,6 +44,7 @@ contents:
     - busybox
     - dash-binsh
     - build-base
+    - git-daemon
     - pkgconf
     - python-3.13
     - xvfb-run
