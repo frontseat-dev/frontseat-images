@@ -1,0 +1,6 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "description": "Keeps the workflows' actions current. apko, container-structure-test, cosign, melange's image and mise are pinned with checksums (see the README) and are bumped by hand.",
+  "enabledManagers": ["github-actions"]
+}

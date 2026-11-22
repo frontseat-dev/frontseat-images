@@ -1,0 +1,21 @@
+# Pull requests: every package and image built and tested. main: the same,
+# and a release when the commits call for one (release.yml).
+name: ci
+on:
+  pull_request: {}
+  push:
+    branches: [main]
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+jobs:
+  test:
+    if: github.event_name == 'pull_request'
+    uses: ./.github/workflows/images.yml
+
+  release:
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/release.yml
+    with:
+      ref: ${{ github.sha }}

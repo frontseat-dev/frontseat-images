@@ -1,0 +1,15 @@
+# What a Node service can count on (container-structure-test).
+schemaVersion: 2.0.0
+
+metadataTest:
+  user: "65532"
+
+commandTests:
+  - name: Node.js 22
+    command: node
+    args: [--version]
+    expectedOutput: ['^v22\.']
+  - name: it runs a program
+    command: node
+    args: [-e, 'console.log(require("os").platform())']
+    expectedOutput: ['linux']

@@ -1,0 +1,107 @@
+# Buildbarn's runner: the root filesystem a build action executes in, which
+# is base (images/base) plus the tools actions expect. The workers' runner
+# rides in as an image volume of its own (no Buildbarn here) and runs each
+# action as uid 65534, unprivileged, confined with:
+# - bubblewrap, in user, pid, ipc and network namespaces of its own;
+# - slirp4netns, the network of its own an action that reaches beyond the
+#   worker gets, through user-mode networking.
+#
+# A worker with a FUSE build directory runs bb_worker and the runner in this
+# image too, in a user namespace of their own, so bb_worker can mount the
+# build directory where the runner's actions see it:
+# - unshare (util-linux-misc, 2.39 or later for --map-users=all) makes it;
+# - mount (util-linux) puts /dev/null over /dev/fuse once bb_worker holds it;
+# - tini is the container's first process, so either one exiting ends it.
+#
+# - a compiler toolchain, pkg-config, Python (git comes with base);
+# - git-daemon, Wolfi's subpackage of git that holds git-http-backend: a
+#   test serves a repository over HTTP with it, as git's own tests do;
+# - xvfb-run, xauth, GTK 3, libXtst, fontconfig and fonts: a virtual display
+#   for SWT/GTK Eclipse UI tests (Tycho's uitest harness runs the workbench
+#   under xvfb-run, which parses its display number with awk and waits for
+#   Xvfb in a way only dash, Debian's /bin/sh, gets right; Xvfb needs the
+#   keyboard maps, and /tmp/.X11-unix made for it, as it runs as uid 65534;
+#   the JDK's AWT dlopens libXtst; SWT and AWT need /etc/fonts);
+# - ICU, so .NET runs with real cultures rather than the invariant one;
+# - OpenSSL 3's libssl beside base's 4.0, LZ4 and libxml2 2.x: .NET and
+#   the PostgreSQL server a suite starts load libssl.so.3, and the server
+#   liblz4.so.1 and libxml2.so.2;
+# - NSS, NSPR, ALSA's libasound, GBM and libudev: what Playwright's
+#   Chromium headless shell loads beyond GTK and fontconfig, for a
+#   browser test (readelf -d on chrome-headless-shell lists them);
+# - the Docker CLI, for a mounted docker.sock;
+# - nono (packages/nono), which confines every action to its own root,
+#   with no network unless it fetches: Landlock and seccomp, no privilege;
+# - mise (packages/mise), which wraps every action (mise x --) and fetches
+#   the toolchains a workspace pins. Everything it writes lives under /mise,
+#   open to uid 65534.
+
+include: images/base/apko.yaml
+
+contents:
+  packages:
+    - bash
+    - busybox
+    - dash-binsh
+    - build-base
+    - git-daemon
+    - pkgconf
+    - python-3.13
+    - xvfb-run
+    - xkbcomp
+    - xkeyboard-config
+    - xdpyinfo
+    - xauth
+    - gtk-3
+    - libxtst
+    - fontconfig
+    - ttf-dejavu
+    - gawk
+    - icu
+    - libssl3
+    - liblz4-1
+    # libxml2.so.2: Wolfi's libxml2 2.15 is libxml2.so.16.
+    - libxml2-2.13-2
+    - libnss
+    - libnspr
+    - alsa-lib
+    - mesa-gbm
+    - libudev
+    - curl
+    - unzip
+    - docker-cli
+    - mise
+    - nono
+    - util-linux-misc
+    - mount
+    - tini
+    - bubblewrap
+    - slirp4netns
+
+environment:
+  MISE_DATA_DIR: /mise/data
+  MISE_CACHE_DIR: /mise/cache
+  MISE_STATE_DIR: /mise/state
+  MISE_TRUSTED_CONFIG_PATHS: /
+  MISE_YES: "1"
+  TMPDIR: /tmp/mise
+  HOME: /tmp
+  PATH: /mise/data/shims:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+paths:
+  - { path: /mise, type: directory, permissions: 0o777, uid: 0, gid: 0 }
+  - { path: /mise/data, type: directory, permissions: 0o777, uid: 0, gid: 0 }
+  - { path: /mise/data/shims, type: directory, permissions: 0o777, uid: 0, gid: 0 }
+  - { path: /mise/cache, type: directory, permissions: 0o777, uid: 0, gid: 0 }
+  - { path: /mise/state, type: directory, permissions: 0o777, uid: 0, gid: 0 }
+  - { path: /tmp/mise, type: directory, permissions: 0o777, uid: 0, gid: 0 }
+  - { path: /tmp/.X11-unix, type: directory, permissions: 0o1777, uid: 0, gid: 0 }
+  # The working directory is the image user's own: OpenShell makes a
+  # sandbox's workspace its user's home, and refuses one it does not own.
+  - { path: /worker, type: directory, permissions: 0o755, uid: 65532, gid: 65532 }
+
+work-dir: /worker
+
+archs:
+  - x86_64
+  - aarch64

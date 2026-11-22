@@ -1,0 +1,157 @@
+# What a job can count on in the runner, and what the controller counts on
+# (container-structure-test). Commands run as the image's user, nonroot.
+schemaVersion: 2.0.0
+
+metadataTest:
+  user: "65532"
+  workdir: /usr/share/actions-runner/_work
+  envVars:
+    - { key: HOME, value: /home/nonroot }
+    - { key: RUNNER_MANUALLY_TRAP_SIG, value: "1" }
+    - { key: ACTIONS_RUNNER_HOOK_JOB_STARTED, value: /usr/share/actions-runner/hooks/job-started.sh }
+  entrypoint:
+    - /bin/bash
+    - -c
+    - exec /usr/share/actions-runner/run.sh --jitconfig "$(cat /run/github-runner/jitconfig)"
+
+fileExistenceTests:
+  - name: the runner's entry
+    path: /usr/share/actions-runner/run.sh
+    shouldExist: true
+    isExecutableBy: any
+  - name: the runner's directory, nonroot's to write in
+    path: /usr/share/actions-runner
+    shouldExist: true
+    uid: 65532
+    gid: 65532
+  - name: the jobs' work directory, nonroot's
+    path: /usr/share/actions-runner/_work
+    shouldExist: true
+    uid: 65532
+    gid: 65532
+  - name: where frontseat's daemon keeps its lock, nonroot's
+    path: /var/lib/frontseat
+    shouldExist: true
+    uid: 65532
+    gid: 65532
+  - name: nonroot's home
+    path: /home/nonroot
+    shouldExist: true
+    uid: 65532
+  - name: the job-started hook that refuses a fork's pull request
+    path: /usr/share/actions-runner/hooks/job-started.sh
+    shouldExist: true
+    isExecutableBy: any
+  - name: Node.js for JavaScript actions
+    path: /usr/share/actions-runner/externals/node24/bin/node
+    shouldExist: true
+  # Not setuid: bwrap gets its namespaces from the kernel as nonroot, by
+  # a user namespace, or not at all; the image grants nothing itself.
+  - name: bubblewrap, frontseat's sandbox, not setuid
+    path: /usr/bin/bwrap
+    shouldExist: true
+    permissions: -rwxr-xr-x
+    uid: 0
+
+commandTests:
+  # .NET will not start without ICU: this is also the runtime's check.
+  - name: the runner, at the pinned version
+    command: /usr/share/actions-runner/bin/Runner.Listener
+    args: [--version]
+    expectedOutput: ['^2\.338\.0']
+  - name: ldd, which setup actions read the C library from
+    command: ldd
+    args: [--version]
+    expectedOutput: ['^ldd [(]glibc-']
+  # A program compiled, linked and run, as nonroot: cc is found by that
+  # name, which cargo and the go command look for, and what it links runs.
+  # The program says so itself: this tool expands a variable before the
+  # shell reads it, and the shell's own, as $? is, to nothing.
+  - name: a C compiler and linker, as a hosted runner has
+    command: bash
+    args:
+      - -c
+      - |
+        cd /tmp && printf '#include <stdio.h>\nint main(void) { puts("linked and run"); return 0; }\n' > probe.c && cc probe.c -o probe && ./probe
+    expectedOutput: ['^linked and run']
+  - name: it runs as nonroot
+    command: id
+    args: [-u]
+    expectedOutput: ['^65532']
+  - name: the Node.js JavaScript actions run on
+    command: /usr/share/actions-runner/externals/node24/bin/node
+    args: [--version]
+    expectedOutput: ['^v24\.']
+  - name: run.sh can write its helper beside itself, as it does at every start
+    command: bash
+    args: [-c, 'cp -f /usr/share/actions-runner/run-helper.sh.template /usr/share/actions-runner/run-helper.sh && echo writable']
+    expectedOutput: ['writable']
+  - name: git
+    command: git
+    args: [--version]
+    expectedOutput: ['git version 2\.']
+  - name: bash
+    command: bash
+    args: [--version]
+    expectedOutput: ['GNU bash']
+  - name: sh is bash
+    command: readlink
+    args: [-f, /bin/sh]
+    expectedOutput: ['/usr/bin/bash']
+  - name: mise
+    command: mise
+    args: [--version]
+    expectedOutput: ['2026\.11\.2']
+  - name: mise installs and runs a pinned tool
+    command: bash
+    args: [-c, 'cd "$(mktemp -d)" && printf "[tools]\njq = \"1.7.1\"\n" > mise.toml && mise trust -q && mise x -- jq --version']
+    expectedOutput: ['jq-1\.7\.1']
+  # That bwrap can make its namespaces as nonroot depends on the pod, not
+  # the image: a container here runs under Docker's default seccomp
+  # profile, which refuses them ("No permissions to create a new
+  # namespace"). The runner box's pod allows them (frontseat-enterprise's
+  # workspace controller) and a job on a tenant's runner proves it with
+  #   bwrap --ro-bind / / --unshare-all --die-with-parent true
+  - name: bubblewrap
+    command: bwrap
+    args: [--version]
+    expectedOutput: ['^bubblewrap 0\.']
+  - name: the tools a job's steps reach for
+    command: bash
+    args: [-c, 'tar --version && gzip --version && curl --version && find --version && sed --version && grep --version && awk --version && ssh -V 2>&1 && echo tools-ok']
+    expectedOutput: ['tools-ok']
+  - name: gpg makes a key and signs with it, as a release does
+    command: bash
+    # No variables: the test runner expands them before bash sees them.
+    args: [-c, 'cd "$(mktemp -d)" && chmod 700 . && gpg --homedir "$(pwd)" --batch --passphrase "" --quick-gen-key probe@example.com default default never && echo hi > f && gpg --homedir "$(pwd)" --batch --pinentry-mode loopback --passphrase "" --detach-sign f && gpg --homedir "$(pwd)" --verify f.sig f 2>&1 && echo gpg-ok']
+    expectedOutput: ['gpg-ok']
+  # The job-started hook, against the events a job can come from. No
+  # variables: the test runner expands them before bash sees them.
+  - name: a fork's pull request is refused
+    command: bash
+    args: [-c, 'printf %s "{\"pull_request\":{\"head\":{\"repo\":{\"full_name\":\"someone/widgets\",\"fork\":true}}},\"repository\":{\"full_name\":\"acme/widgets\"}}" > /tmp/e.json && env GITHUB_EVENT_PATH=/tmp/e.json /usr/share/actions-runner/hooks/job-started.sh || echo refused']
+    expectedOutput: ['refused']
+    expectedError: ['does not run a pull request from a fork']
+  - name: a pull request whose head repository is gone is refused
+    command: bash
+    args: [-c, 'printf %s "{\"pull_request\":{\"head\":{\"repo\":null}},\"repository\":{\"full_name\":\"acme/widgets\"}}" > /tmp/e.json && env GITHUB_EVENT_PATH=/tmp/e.json /usr/share/actions-runner/hooks/job-started.sh || echo refused']
+    expectedOutput: ['refused']
+  - name: the repository's own pull request runs
+    command: bash
+    args: [-c, 'printf %s "{\"pull_request\":{\"head\":{\"repo\":{\"full_name\":\"acme/widgets\",\"fork\":false}}},\"repository\":{\"full_name\":\"acme/widgets\"}}" > /tmp/e.json && env GITHUB_EVENT_PATH=/tmp/e.json /usr/share/actions-runner/hooks/job-started.sh && echo runs']
+    expectedOutput: ['runs']
+  - name: a job without its event is refused
+    command: bash
+    args: [-c, 'env -u GITHUB_EVENT_PATH /usr/share/actions-runner/hooks/job-started.sh || echo refused']
+    expectedOutput: ['refused']
+  - name: a push runs
+    command: bash
+    args: [-c, 'printf %s "{\"ref\":\"refs/heads/main\",\"repository\":{\"full_name\":\"acme/widgets\"}}" > /tmp/e.json && env GITHUB_EVENT_PATH=/tmp/e.json /usr/share/actions-runner/hooks/job-started.sh && echo runs']
+    expectedOutput: ['runs']
+  # The entrypoint's command, without the Secret: the listener starts, finds
+  # no configuration and ends (run.sh exits 0 for it) rather than idling.
+  - name: without a JIT configuration, the runner ends
+    command: bash
+    args: [-c, 'exec /usr/share/actions-runner/run.sh --jitconfig "$(cat /run/github-runner/jitconfig)"']
+    expectedOutput: ['Runner listener exit with terminated error']
+    expectedError: ['/run/github-runner/jitconfig: No such file']

@@ -1,0 +1,99 @@
+# The GitHub Actions runner's own release, until Wolfi has it (README.md).
+# It is .NET, self-contained: the runtime ships in bin/, but ICU, Kerberos
+# (GSSAPI) and OpenSSL it loads at run time, so they are named here; its
+# run.sh and run-helper.sh are bash. The layout is the release's own
+# (run.sh, bin/, externals/ with Node.js for JavaScript actions), under
+# /usr/share/actions-runner.
+package:
+  name: actions-runner
+  version: 2.338.0
+  epoch: 1
+  description: The runner for GitHub Actions
+  copyright:
+    - license: MIT
+  dependencies:
+    runtime:
+      - bash
+      - icu
+      - krb5-libs
+      - libssl3
+      - zlib
+      - libstdc++
+      - libgcc
+      - ca-certificates-bundle
+      # The job-started hook reads the event with it.
+      - jq
+
+environment:
+  contents:
+    repositories:
+      - https://packages.wolfi.dev/os
+    keyring:
+      - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+    packages:
+      - busybox
+
+pipeline:
+  # The release's tarballs have no top directory.
+  - if: ${{build.arch}} == 'aarch64'
+    uses: fetch
+    with:
+      uri: https://github.com/actions/runner/releases/download/v${{package.version}}/actions-runner-linux-arm64-${{package.version}}.tar.gz
+      expected-sha256: 628b4a7258487b80c1d3c221095a7ded349f5ae0175fd3dfab708d07428f041b
+      strip-components: 0
+  - if: ${{build.arch}} == 'x86_64'
+    uses: fetch
+    with:
+      uri: https://github.com/actions/runner/releases/download/v${{package.version}}/actions-runner-linux-x64-${{package.version}}.tar.gz
+      expected-sha256: af4b794c1bc41d73d40535e3fe092a39f9679cd8d965954c2aca25a05ca41d32
+      strip-components: 0
+  # Two things of the release's are left out, as nothing here can load them:
+  # - externals/node*_alpine (x64 only): musl Node.js, which the runner
+  #   mounts into container jobs on Alpine images;
+  # - bin/libcoreclrtraceptprovider.so: .NET's LTTng tracing, linked to
+  #   liblttng-ust.so.0, which Wolfi does not have (it has .so.1). .NET
+  #   loads it only if it is there.
+  - runs: |
+      dest="${{targets.destdir}}/usr/share/actions-runner"
+      mkdir -p "$dest"
+      cp -a bin externals config.sh env.sh run.sh run-helper.sh.template safe_sleep.sh "$dest/"
+      rm -rf "$dest"/externals/*_alpine "$dest/bin/libcoreclrtraceptprovider.so"
+  # The job-started hook (ACTIONS_RUNNER_HOOK_JOB_STARTED in the image):
+  # a job a fork's pull request triggered fails before any of its steps
+  # runs. A fork edits the workflow in its pull request, its runs-on
+  # among it, so only the runner can refuse such a job; the workflow
+  # sends it to GitHub's hosted runner. A pull request whose head is not
+  # the repository's own, a fork or one deleted since, is refused.
+  - runs: |
+      mkdir -p "${{targets.destdir}}/usr/share/actions-runner/hooks"
+      cat > "${{targets.destdir}}/usr/share/actions-runner/hooks/job-started.sh" <<'HOOK'
+      #!/bin/bash
+      set -euo pipefail
+      # Every job has its event; one without is refused, as is one the
+      # hook cannot read.
+      event="${GITHUB_EVENT_PATH:-}"
+      if [ -z "$event" ] || [ ! -f "$event" ]; then
+        echo "::error::This runner runs no job without its event." >&2
+        exit 1
+      fi
+      # jq -e exits 1 when the job is not a fork's, 0 when it is, and
+      # anything else when it cannot tell: only 1 lets the job run.
+      rc=0
+      jq -e '.pull_request != null and (.pull_request.head.repo.full_name // "") != .repository.full_name' "$event" >/dev/null || rc=$?
+      [ "$rc" -eq 1 ] && exit 0
+      echo "::error::This runner does not run a pull request from a fork. It runs on GitHub's hosted runner." >&2
+      exit 1
+      HOOK
+      chmod 0755 "${{targets.destdir}}/usr/share/actions-runner/hooks/job-started.sh"
+
+test:
+  environment:
+    contents:
+      repositories:
+        - https://packages.wolfi.dev/os
+      keyring:
+        - https://packages.wolfi.dev/os/wolfi-signing.rsa.pub
+      packages:
+        - busybox
+  pipeline:
+    - runs: /usr/share/actions-runner/bin/Runner.Listener --version | grep -Fx ${{package.version}}

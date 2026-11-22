@@ -1,0 +1,153 @@
+# What a build action can count on in the runner (container-structure-test).
+# Every command runs as uid 65534, as bb_runner runs actions.
+schemaVersion: 2.0.0
+
+containerRunOptions:
+  user: "65534"
+
+metadataTest:
+  envVars:
+    - { key: MISE_DATA_DIR, value: /mise/data }
+    - { key: HOME, value: /tmp }
+  workdir: /worker
+
+fileExistenceTests:
+  - name: the working directory, the image user's own, as an OpenShell sandbox's workspace must be
+    path: /worker
+    shouldExist: true
+    permissions: drwxr-xr-x
+    uid: 65532
+    gid: 65532
+  - name: mise's state, open to every user
+    path: /mise/data
+    shouldExist: true
+    permissions: drwxrwxrwx
+  - name: mise's cache, open to every user
+    path: /mise/cache
+    shouldExist: true
+    permissions: drwxrwxrwx
+  - name: libXtst, for the JDK's AWT
+    path: /usr/lib/libXtst.so.6
+    shouldExist: true
+  - name: GTK 3, for SWT
+    path: /usr/lib/libgtk-3.so.0
+    shouldExist: true
+
+commandTests:
+  - name: ICU, for .NET's cultures, at whichever major version Wolfi ships
+    command: bash
+    args: [-c, 'ls /usr/lib/libicuuc.so.[0-9]* >/dev/null && echo icu-ok']
+    expectedOutput: ['icu-ok']
+  - name: the libraries .NET and a PostgreSQL server load beyond base's
+    command: bash
+    args: [-c, 'ls /usr/lib/libssl.so.3 /usr/lib/liblz4.so.1 /usr/lib/libxml2.so.2 && echo libs-ok']
+    expectedOutput: ['libs-ok']
+  - name: the libraries Playwright's Chromium headless shell loads beyond GTK's
+    command: bash
+    args: [-c, 'ls /usr/lib/libnss3.so /usr/lib/libnssutil3.so /usr/lib/libnspr4.so /usr/lib/libasound.so.2 /usr/lib/libgbm.so.1 /usr/lib/libudev.so.1 && echo libs-ok']
+    expectedOutput: ['libs-ok']
+  - name: mise
+    command: mise
+    args: [--version]
+    expectedOutput: ['2026\.11\.2']
+  - name: nono
+    command: nono
+    args: [--version]
+    expectedOutput: ['0\.81\.0']
+  # Where the kernel cannot confine (Landlock, as under the QEMU that tests
+  # arm64 on an amd64 machine), nono refuses to run the command at all:
+  # it never runs one unconfined.
+  - name: nono confines a command to what it is given, with no privilege, or runs none
+    command: sh
+    args: [-c, 'mkdir -p /tmp/given /tmp/nono && cd /tmp/given && HOME=/tmp/nono nono --silent wrap --allow /tmp/given --block-net -- sh -c "echo x > /tmp/given/made && if (echo x > /tmp/escaped) 2>/dev/null; then echo escaped; else echo held; fi" 2>/tmp/nono/err || { grep -q "Landlock not available" /tmp/nono/err && echo refused-unconfinable; }']
+    expectedOutput: ['^(held|refused-unconfinable)\n?$']
+    excludedOutput: ['escaped']
+  - name: a C toolchain
+    command: gcc
+    args: [--version]
+    expectedOutput: ['gcc']
+  - name: git, from base
+    command: git
+    args: [--version]
+    expectedOutput: ['git version 2\.']
+  - name: git-http-backend, with which a test serves a repository over HTTP
+    command: bash
+    args: [-c, 'test -x "$(git --exec-path)/git-http-backend" && echo backend-ok']
+    expectedOutput: ['backend-ok']
+  - name: Python
+    command: python3
+    args: [--version]
+    expectedOutput: ['Python 3\.13']
+  - name: the Docker CLI
+    command: docker
+    args: [--version]
+    expectedOutput: ['Docker version']
+  - name: unshare, with --map-users=all (util-linux 2.39 or later)
+    command: unshare
+    args: [--version]
+    expectedOutput: ['util-linux 2\.(39|[4-9][0-9])']
+  - name: mount, from util-linux
+    command: mount
+    args: [--version]
+    expectedOutput: ['util-linux 2\.']
+  - name: tini
+    command: tini
+    args: [--version]
+    expectedOutput: ['tini version 0\.19']
+  - name: bubblewrap, with which the workers' runner confines each action
+    command: bwrap
+    args: [--version]
+    expectedOutput: ['bubblewrap 0\.(1[0-9]|[2-9][0-9])']
+  - name: slirp4netns, an action's own network beyond the worker
+    command: slirp4netns
+    args: [--version]
+    expectedOutput: ['slirp4netns version 1\.']
+  - name: fonts for SWT and AWT
+    command: fc-list
+    expectedOutput: ['DejaVu']
+  # Under a shell, as an action runs it: as a container's PID 1, xvfb-run
+  # never hears Xvfb's ready signal (and a shell given one command would
+  # become it, hence the second).
+  - name: a virtual display, as Tycho's UI tests start one
+    command: sh
+    args: [-c, 'xvfb-run -a xdpyinfo && echo display-ok']
+    expectedOutput: ['dimensions:', 'display-ok']
+  - name: mise installs and runs a pinned tool
+    command: bash
+    args: [-c, 'cd "$(mktemp -d)" && printf "[tools]\njq = \"1.7.1\"\n" > mise.toml && mise x -- jq --version']
+    expectedOutput: ['jq-1\.7\.1']
+  # A build's tools are held to the repository's lock: what is downloaded
+  # must have the checksum the lock holds. A mise older than the lock's
+  # format reads no lock at all and installs whatever it is served, so
+  # this is held with a lock of the format mise writes today: what it
+  # pins is installed, and what is not as it says is refused.
+  - name: mise installs what its lock pins and refuses what is not as the lock says
+    command: bash
+    args:
+      - -c
+      - |
+        set -e
+        cd "$(mktemp -d)"
+        printf '[tools]\n"http:notice" = { version = "1.8.1", url = "https://raw.githubusercontent.com/jqlang/jq/jq-{{version}}/COPYING" }\n' > mise.toml
+        cat > mise.lock <<'EOF'
+        lockfile_version = 4
+
+        [[tools."http:notice"]]
+        version = "1.8.1"
+        backend = "http:notice"
+        specifiers = ["1.8.1"]
+
+        [tools."http:notice"."platforms.linux-arm64"]
+        checksum = "sha256:ad2b4a266b2268939c1446979759706077421cf906a203aa188c6f396e8cfd74"
+        url = "https://raw.githubusercontent.com/jqlang/jq/jq-1.8.1/COPYING"
+
+        [tools."http:notice"."platforms.linux-x64"]
+        checksum = "sha256:ad2b4a266b2268939c1446979759706077421cf906a203aa188c6f396e8cfd74"
+        url = "https://raw.githubusercontent.com/jqlang/jq/jq-1.8.1/COPYING"
+        EOF
+        mise trust -q
+        env MISE_DATA_DIR="$(pwd)/pinned" MISE_LOCKED=1 MISE_YES=1 mise install >/dev/null 2>&1 && echo pinned-installed
+        sed -i 's/sha256:ad2b4a26/sha256:00000000/' mise.lock
+        if env MISE_DATA_DIR="$(pwd)/wrong" MISE_LOCKED=1 MISE_YES=1 mise install >/dev/null 2>&1; then echo wrong-installed; else echo wrong-refused; fi
+    expectedOutput: ['pinned-installed', 'wrong-refused']
+    excludedOutput: ['wrong-installed']

@@ -1,0 +1,84 @@
+# A commit on main, built, tested and, when its commits call for one,
+# released. git-cliff reads the conventional commits since the last release
+# (cliff.toml): feat makes a minor release, fix a patch; anything else
+# releases nothing and is only built and tested. A release publishes every
+# image as X.Y.Z, then tags vX.Y.Z and creates the GitHub release: the
+# changes, and every image's reference and digest.
+name: release
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: the commit on main to release
+        type: string
+        required: true
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+concurrency:
+  group: release
+  cancel-in-progress: false
+jobs:
+  version:
+    runs-on: ubuntu-24.04
+    outputs:
+      version: ${{ steps.next.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+      - id: next
+        name: the next version, if any
+        run: |
+          next="$(git-cliff --bumped-version)"
+          if git rev-parse -q --verify "refs/tags/$next" >/dev/null; then
+            echo "nothing to release since $next"
+          else
+            echo "version=${next#v}" >> "$GITHUB_OUTPUT"
+            git-cliff --unreleased --tag "$next" --strip all > notes.md
+            echo "releasing $next"
+          fi
+      - if: steps.next.outputs.version != ''
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: notes
+          path: notes.md
+          retention-days: 1
+
+  images:
+    needs: version
+    uses: ./.github/workflows/images.yml
+    with:
+      ref: ${{ inputs.ref }}
+      version: ${{ needs.version.outputs.version }}
+
+  github-release:
+    needs: [version, images]
+    if: needs.version.outputs.version != ''
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          pattern: '{notes,digest-*}'
+          merge-multiple: true
+      - name: tag and release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: v${{ needs.version.outputs.version }}
+        run: |
+          {
+            cat notes.md
+            echo
+            echo "### Images"
+            echo
+            echo "Signed with cosign (keyless). Pin by digest."
+            echo
+            echo "| image | reference | digest |"
+            echo "|---|---|---|"
+            cat digest-*.md
+          } > release.md
+          gh release create "$TAG" -R "$GITHUB_REPOSITORY" --target "${{ inputs.ref }}" \
+            --title "$TAG" --notes-file release.md

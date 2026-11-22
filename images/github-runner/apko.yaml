@@ -1,0 +1,81 @@
+# A GitHub Actions runner for one job: base (images/base) plus the runner
+# (packages/actions-runner), mise (packages/mise) and the tools jobs expect
+# of a Linux runner. It runs as nonroot (65532): the runner refuses root.
+#
+# The contract with the controller that starts it: a Secret holding the
+# runner's just-in-time configuration is mounted at
+# /run/github-runner/jitconfig, and the entrypoint runs the runner once
+# with it. A JIT runner is ephemeral and never updates itself.
+#
+# The runner's directory is its own: it writes run-helper.sh, its
+# configuration (.runner, .credentials) and its logs (_diag) beside run.sh,
+# and checks out and builds in _work, so both are nonroot's.
+# RUNNER_MANUALLY_TRAP_SIG has run.sh pass SIGTERM on to the listener, so
+# a stopped pod ends the job rather than abandoning it.
+#
+# bubblewrap is frontseat's sandbox: `frontseat publish` runs its effects
+# on a grid embedded in the job, and that grid confines each action with
+# bwrap (its own mount, pid, ipc, uts and net namespaces). bwrap is not
+# setuid here; as nonroot it makes a user namespace first, so the box must
+# be allowed to (the controller runs runner boxes in a pod user namespace
+# with an unmasked /proc; see frontseat-enterprise).
+#
+# The runner refuses a job a fork's pull request triggered: its
+# job-started hook fails it before any step runs.
+
+include: images/base/apko.yaml
+
+contents:
+  packages:
+    - actions-runner
+    - mise
+    - bash
+    - bash-binsh
+    - coreutils
+    - findutils
+    - sed
+    - grep
+    - gawk
+    - gnutar
+    - gzip
+    - curl
+    - openssh-client
+    - bubblewrap
+    # ldd, getent, getconf, locale: what setup actions probe the system with
+    # (jdx/mise-action reads the C library from `ldd --version`).
+    - posix-libc-utils
+    # gpg, which a hosted runner has: a release imports its signing key
+    # and signs what it publishes with it. Wolfi splits GnuPG: gpg is the
+    # command, gpg-agent holds the secret keys it signs with.
+    - gpg
+    - gpg-agent
+    # A C compiler and linker, which a hosted runner has: a job that
+    # builds from source needs one before any grid does, as cargo does for
+    # a crate's build script and Go for cgo.
+    - build-base
+
+environment:
+  HOME: /home/nonroot
+  RUNNER_MANUALLY_TRAP_SIG: "1"
+  # A job a fork's pull request triggered fails before its first step
+  # (packages/actions-runner): no workflow can unset the runner's own
+  # environment.
+  ACTIONS_RUNNER_HOOK_JOB_STARTED: /usr/share/actions-runner/hooks/job-started.sh
+
+paths:
+  - { path: /home/nonroot, type: directory, permissions: 0o755, uid: 65532, gid: 65532 }
+  - { path: /usr/share/actions-runner, type: permissions, permissions: 0o755, uid: 65532, gid: 65532 }
+  - { path: /usr/share/actions-runner/_work, type: directory, permissions: 0o755, uid: 65532, gid: 65532 }
+  # Where frontseat's daemon keeps its one lock, at one path whatever it is
+  # told, by which the command line in a job finds it: nonroot's to write,
+  # since a job starts the daemon itself.
+  - { path: /var/lib/frontseat, type: directory, permissions: 0o755, uid: 65532, gid: 65532 }
+
+work-dir: /usr/share/actions-runner/_work
+
+entrypoint:
+  command: /bin/bash -c 'exec /usr/share/actions-runner/run.sh --jitconfig "$(cat /run/github-runner/jitconfig)"'
+
+archs:
+  - x86_64
+  - aarch64

@@ -1,0 +1,6 @@
+# Made by a build: the run's signing key, its packages and images.
+melange.rsa
+melange.rsa.pub
+apks/
+*.tar
+digest-*.md

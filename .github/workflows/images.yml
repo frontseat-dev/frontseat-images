@@ -1,0 +1,91 @@
+# Every image (images/<name>/apko.yaml) built for amd64 and arm64 and
+# tested on both (images/<name>/tests.yaml). With a version, each is then
+# pushed as ghcr.io/frontseat-dev/<name>:<version> and signed with cosign
+# (keyless); its reference and digest are handed on as the artifact
+# digest-<name>.
+name: images
+on:
+  workflow_call:
+    inputs:
+      ref:
+        description: the commit to build
+        type: string
+        default: ''
+      version:
+        description: publish as this version (X.Y.Z); empty publishes nothing
+        type: string
+        default: ''
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+env:
+  REGISTRY: ghcr.io/frontseat-dev
+jobs:
+  packages:
+    uses: ./.github/workflows/packages.yml
+    with:
+      ref: ${{ inputs.ref }}
+
+  image:
+    needs: packages
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [base, buildbarn-runner, github-runner, node]
+    runs-on: ubuntu-24.04
+    steps:
+      # buildbarn-runner, a toolchain and a desktop for UI tests, built for
+      # two architectures and then published, outgrows the hosted runner's
+      # free disk; its preinstalled SDKs are nothing apko uses.
+      - name: free the runner's disk
+        run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL && df -h /
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: ./.github/actions/setup
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          name: packages
+      # --sbom=false: apko 1.4.8 fails its own SBOM check on Wolfi's libLLVM
+      # (a PURL case mismatch); back on once that is fixed.
+      - name: build
+        run: |
+          apko build "images/${{ matrix.name }}/apko.yaml" "${{ matrix.name }}:test" image.tar \
+            --arch x86_64,aarch64 --sbom=false \
+            --repository-append "$PWD/apks" --keyring-append "$PWD/melange.rsa.pub"
+          docker load -i image.tar
+      - name: test amd64
+        run: container-structure-test test --image "${{ matrix.name }}:test-amd64" --config "images/${{ matrix.name }}/tests.yaml"
+      - name: test arm64
+        run: container-structure-test test --platform linux/arm64 --image "${{ matrix.name }}:test-arm64" --config "images/${{ matrix.name }}/tests.yaml"
+      # The publish builds again, from the packages; what the tests ran is
+      # done with.
+      - if: inputs.version != ''
+        name: drop the tested images
+        run: rm -f image.tar && docker image prune -af >/dev/null && df -h /
+      - if: inputs.version != ''
+        uses: docker/login-action@v4.6.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - if: inputs.version != ''
+        name: publish
+        run: |
+          ref="$REGISTRY/${{ matrix.name }}:${{ inputs.version }}"
+          apko publish "images/${{ matrix.name }}/apko.yaml" "$ref" \
+            --arch x86_64,aarch64 --sbom=false \
+            --repository-append "$PWD/apks" --keyring-append "$PWD/melange.rsa.pub"
+          # The index, which names one image per architecture, is what a
+          # consumer pins; signing it recursively signs each image too.
+          index="$(docker buildx imagetools inspect "$ref" --format '{{json .Manifest}}' | jq -r .digest)"
+          cosign sign --yes --recursive "$REGISTRY/${{ matrix.name }}@$index"
+          echo "| ${{ matrix.name }} | \`$ref\` | \`$index\` |" > "digest-${{ matrix.name }}.md"
+          cat "digest-${{ matrix.name }}.md" >> "$GITHUB_STEP_SUMMARY"
+      - if: inputs.version != ''
+        uses: actions/upload-artifact@v7.0.2
+        with:
+          name: digest-${{ matrix.name }}
+          path: digest-${{ matrix.name }}.md
+          retention-days: 1
