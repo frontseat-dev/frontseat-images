@@ -2,7 +2,7 @@
 x86_64 Xvfb 21.1.26-r1
 x86_64 alsa-lib 1.2.16.1-r6
 x86_64 aom-libs 3.15.3-r1
-x86_64 at-spi2-core 2.62.1-r1
+x86_64 at-spi2-core 2.62.2-r0
 x86_64 avahi-libs 0.9_rc5-r4
 x86_64 bash 5.3-r14
 x86_64 binutils 2.47-r4
@@ -54,8 +54,8 @@ x86_64 krb5-libs 1.22.3-r0
 x86_64 ld-linux-2.44 2.44-r24
 x86_64 libLLVM-23 23.1.6-r1
 x86_64 libacl1 2.4.0-r6
-x86_64 libatk-1.0 2.62.1-r1
-x86_64 libatk-bridge-2.0 2.62.1-r1
+x86_64 libatk-1.0 2.62.2-r0
+x86_64 libatk-bridge-2.0 2.62.2-r0
 x86_64 libatomic 16.2.0-r5
 x86_64 libattr1 2.6.0-r6
 x86_64 libblkid 2.42.4-r3
@@ -209,7 +209,7 @@ x86_64 zstd 1.5.7-r15
 aarch64 Xvfb 21.1.26-r1
 aarch64 alsa-lib 1.2.16.1-r6
 aarch64 aom-libs 3.15.3-r1
-aarch64 at-spi2-core 2.62.1-r1
+aarch64 at-spi2-core 2.62.2-r0
 aarch64 avahi-libs 0.9_rc5-r4
 aarch64 bash 5.3-r14
 aarch64 binutils 2.47-r4
@@ -261,8 +261,8 @@ aarch64 krb5-libs 1.22.3-r0
 aarch64 ld-linux-2.44 2.44-r24
 aarch64 libLLVM-23 23.1.6-r1
 aarch64 libacl1 2.4.0-r6
-aarch64 libatk-1.0 2.62.1-r1
-aarch64 libatk-bridge-2.0 2.62.1-r1
+aarch64 libatk-1.0 2.62.2-r0
+aarch64 libatk-bridge-2.0 2.62.2-r0
 aarch64 libatomic 16.2.0-r5
 aarch64 libattr1 2.6.0-r6
 aarch64 libblkid 2.42.4-r3
